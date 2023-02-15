@@ -1,0 +1,26 @@
+name: myenv
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - psychopy
+  - numpy
+  - scipy
+  - matplotlib
+  - pandas
+  - jupyter
+  - plotnine
+  - click
+  - black
+  - pip
+  - pytest
+  - rope
+  - h5py
+  - pip:
+      - psychtoolbox
+      - pygame
+      - pyo
+      - pyparallel; platform_system != "Windows"
+      - SoundFile; platform_system == "Windows"
+      - websocket_client
+      - control
