@@ -54,7 +54,7 @@ def main(
         blendMode="add"
     )
 
-    hit_radius = 30 # TODO: hit_radius als parameter
+    hit_radius = 20 # TODO: hit_radius als parameter
     n_trials = 3 # TODO: als parameter
 
     instruction_text = visual.TextStim(
@@ -81,28 +81,33 @@ def main(
     for trial in range(n_trials):
         # Setup trial
         completed = False
-        xoff = 0
-        yoff = 1
         mouse.setPos([0,-200])
-        target_pos = (0,200) # TODO: varying pos?
-        debug_circle = new_circle(win,target_pos,color=(50,0,200))
-        debug_circle.setRadius(hit_radius)
-        target_circle = new_circle(win,target_pos,color=(200,0,50))
+        target_pos = [0,random.choice([160,190,220])]
+        dist_type = "repell" #random.choice([None,"straight","rotate","repell","burst"],p=[0.8,0.05,0.05,0.05,0.05])
+
+        target_circle = new_circle(win,target_pos,r=20,color=(200,0,50))
 
         while(not completed):
             mouse_pos = mouse.getPos()
-            dist = math.dist(mouse_pos, target_pos)
-            xoff = max(0, 0.01 * (400-dist))
-            new_mouse_pos = [mouse_pos[0]+xoff,mouse_pos[1]+yoff]
-            mouse.setPos(new_mouse_pos)
+
+            # Distortions
+            if (dist_type == None):
+                new_mouse_pos = (mouse_pos[0],mouse_pos[1])
+            if (dist_type == "straight"):
+                new_mouse_pos = (0,mouse_pos[1])
+            if (dist_type == "rotate"):
+                new_mouse_pos = rotate_point(mouse_pos, 30, origin=(0,-200))
+            if (dist_type == "repell"):
+                new_mouse_pos = repell(mouse_pos, target_pos, thresh=160, force=0.01)
+                mouse.setPos((new_mouse_pos[0],new_mouse_pos[1]+1)) # +1 because of bug with setPos()
 
             # Draw Stuff
             new_circle(win,new_mouse_pos).draw()
-            debug_circle.draw()
             target_circle.draw()
             win.flip()
 
             # Breakout condition
+            dist = math.dist(new_mouse_pos, target_pos)
             if dist < hit_radius:
                 completed = True
             core.wait(0.005)
@@ -113,15 +118,29 @@ def main(
     win.close()
     core.quit()
 
-def new_circle(win, pos: tuple, color=(255,255,255)):
+def new_circle(win, pos: tuple, r=10,color=(255,255,255)):
     new_circ=visual.Circle(
             win,
-            radius = 15,
+            radius = r,
             pos = pos,
             opacity = 1,
             fillColor = color,
             colorSpace = 'rgb255')
     return new_circ
+
+def rotate_point(point, deg, origin=(0,0)):
+    angle = np.deg2rad(deg)
+    x = point[0]-origin[0]
+    y = point[1]-origin[1]
+    newx = math.cos(angle)*x - math.sin(angle)*y
+    newy = math.sin(angle)*x + math.cos(angle)*y
+    return (newx+origin[0],newy+origin[1])
+
+def repell(point, target, thresh, force):
+    dist = math.dist(point, target)
+    newx = point[0]+np.sign(point[0]-target[0])*force*max(0,thresh-dist)
+    newy = point[1]+np.sign(point[1]-target[1])*force*max(0,thresh-dist)
+    return (newx,newy)
 
 @click.command()
 
