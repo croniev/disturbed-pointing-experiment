@@ -161,7 +161,7 @@ def main(
             win.setMouseVisible(True)
             win.close()
             core.quit()
-
+        core.wait(0.2)
     # END SESSION
     win.setMouseVisible(True)
     win.close()
