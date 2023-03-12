@@ -27,7 +27,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 touch_radius = 25 # How close one has to be to beginning or orientation point
 n_training = 1 # How many training blocks are performed
 n_trials = 3 # How many normal blocks are performed
-block_size = 30 # How many trials are in on block
+block_size = 4 # How many trials are in on block
 orientation_point = [0,-350] # Position of point that has to be cut
 beginning_point = [0,-470] # Position of point that needs to be gone back to
 target_pos = (0,300) # not used
@@ -41,6 +41,8 @@ burst_dur = 0.2 # How long the burst disturbtion is applied
 burst_force = -20 # Horizontal force of the burst disturbtion
 time_limit = 0.4 # How much time one has for a trial
 question_prob = 0.4 # Likelihood of subjective reporting in a non-disturbtion trial
+p_x, p_y = 200,200
+proprio_targets= [[-p_x,p_y],[p_x,p_y],[p_x,-p_y],[-p_x,-p_y]] # Possible targets for proprioceptive reporting
 
 def main(
     screen: int = 0,
@@ -110,7 +112,7 @@ def main(
 
         # Preparation - move mouse back
         started = False
-        mouse.setPos(top_pos)
+        mouse.setPos(top_pos) # TODO: should this be changed?
         while not back:
             if len(event.getKeys(keyList=['q'])) > 0: # DEBUG
                 win.setMouseVisible(True)
@@ -236,6 +238,29 @@ def main(
         else:
             win.flip()
             core.wait(0.2)
+        
+
+        # Propriocept guess
+        # TODO: Only makes sense when trackpad is absolute, not relative
+        target = proprio_targets[np.random.randint(len(proprio_targets))]
+        target_shape = new_circle(win,target,r=touch_radius)
+        target_shape.draw()
+        win.flip()
+        hit = False
+        while True:
+            if mouse.isPressedIn(target_shape):
+                hit = True
+                break
+            elif np.sum(mouse.getPressed()) != 0:
+                break
+        if training:
+            if hit:
+                new_circle(win, target, r=touch_radius, color=(0,240,0)).draw()
+            else:
+                new_circle(win, target, r=touch_radius, color=(240,0,0)).draw()
+            new_circle(win,mouse.getPos()).draw()
+            win.flip()
+            core.wait(0.6)
 
         # Add data to df
         tmp = pd.DataFrame.from_dict(trial_data)
@@ -293,8 +318,8 @@ def scoring(y_array, err):
     # score for time
     timing = "Good Timing"
     reach_top_idx = bisect.bisect_left(y_array, top_pos[1])
-    print(y_array)
-    print(reach_top_idx)
+#    print(y_array)
+#    print(reach_top_idx)
     if reach_top_idx == len(y_array): # i.e. top was not reached
         min_dist = np.absolute(top_pos[1]-max(y_array))
         if(min_dist > time_score_dist_crit):
