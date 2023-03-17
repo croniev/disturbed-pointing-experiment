@@ -6,7 +6,9 @@ During a straight pointing task with the arm occluded from vision, do subjects f
 - Conda Environment for Handeln course should work. If not install from yml file.
 - run main.py
 	- debug: disable fullscreen
+	<!---
 	- distortion (-d): set to either random (default), none, straight, rotate, repell, burst
+	-->
 
 After reaching the target the mouse has to be moved back to spawnpoint and a question is answered. Then the next trial starts.
 
