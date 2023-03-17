@@ -230,7 +230,7 @@ def main(
             )
             feedback_text.draw()
             win.flip()
-            pressed_key = event.waitKeys(keyList=["q","y","n"])
+            pressed_key = event.waitKeys(keyList=["q","a","s"])
             if pressed_key[0][0] == "q": # DEBUG
                 win.setMouseVisible(True)
                 win.close()
