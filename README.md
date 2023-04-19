@@ -1,5 +1,7 @@
 # disturbed-pointing-experiment
 Idea for my Bachelors Thesis. 
+Please do not read if you are planning on participating in the experiment!!
+
 During a straight pointing task with the arm occluded from vision, do subjects feel physically pushed when the mouse position is distorted?
 
 ## Usage
