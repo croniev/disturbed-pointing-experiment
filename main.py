@@ -25,32 +25,13 @@ size = 250
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-# TODO: Store parameters in and load from json
+# Parameters
 with open('params.json') as json_data:
     PARAMS = json.load(json_data)
-# PARAMETERS
-touch_radius = 25  # How close one has to be to beginning or orientation point
-n_proprioceptive_reporting = 2  # How many trials the baseline proprioceptive reporting should consist of
-n_training = 0  # How many training blocks are performed
-block_size = 4  # How many trials are in on block
-orientation_point = [0, -350]  # Position of point that has to be cut
-beginning_point = [0, -470]  # Position of point that needs to be gone back to
-target_pos = (0, 300)  # not used
-top_pos = (0, 350)  # Where mouse will spawn after task and reference point for scoring
-prop_report_beginnings = [beginning_point, top_pos, [0, 0]]  # Points to move to before proprioceptive reporting
-time_score_dist_crit = 60  # How far the mouse has to have been away from top to be penalized
-time_score_time_crit = 7  # How many steps too fast mouse has to have been to be penalized
-refresh_rate = 0.0001  # After how much time mouse position is updated
-disturb_prob = 1  # 0.2  # How likely a disturbtion is to occur in a normal trial
-burst_time = [0.10, 0.13, 0.16]  # After how much time the burst disturbtion starts
-burst_dur = [0.1, 0.2, 0.3]  # How long the burst disturbtion is applied
-burst_force = [-10, 10, -20, 20, -30, 30]  # Horizontal force of the burst disturbtion
+touch_radius, n_proprioceptive_reporting, n_training, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "n_training", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y"]]
 burst_combis = list(product(burst_time, burst_dur, burst_force))
 n_trials = len(burst_combis)  # How many normal blocks are performed
-show_score_every_n_trials = 6  # After how many trials the score is shown (always shown in training)
-time_limit = 0.4  # How much time one has for a trial
-question_prob = 0.4  # Likelihood of subjective reporting in a non-disturbtion trial
-p_x, p_y = 200, 200
+prop_report_beginnings = [beginning_point, top_pos, [0, 0]]  # Points to move to before proprioceptive reporting
 proprio_targets = [[-p_x, p_y], [p_x, p_y], [p_x, -p_y], [-p_x, -p_y]]  # Possible targets for proprioceptive reporting
 
 
@@ -59,7 +40,7 @@ def main(
     debug: bool = False,
     distortion: str = "random",
     no_propriocept: bool = False,
-    user: int = 0,
+    user: str = "0",
     lefthanded: bool = False,
 ) -> None:
     # Open a PsychoPy window, show the image, collect a keypress, close.
@@ -73,7 +54,6 @@ def main(
 
     # Save Params and Flags in own file
     PARAMS.update({"debug": debug, "distortion": distortion, "no_propriocept": no_propriocept, "lefthanded": lefthanded})
-    pd.DataFrame.from_dict(PARAMS).to_csv(str("data/" + user + "_params.csv"), index=False)
 
     # SHAPES
     training_line = visual.Line(win,
@@ -91,7 +71,7 @@ def main(
                                                text=("You have completed a block.\nRelax for a bit.\nPress 'space' when you are ready to continue."),
                                                wrapWidth=0.9,
                                                height=0.05)
-    text_stim_trianing_complete = visual.TextStim(win,
+    text_stim_training_complete = visual.TextStim(win,
                                                   units="norm",
                                                   text=("You have completed the training block.\nPress 'space' to start with the experiment."),
                                                   wrapWidth=0.9,
@@ -123,9 +103,13 @@ def main(
     timing = None
 
     # DATA COLLECTION
-    columns = ['trial_nr', 'training', 'block_nr', 'dist_type', 'burst_dur', 'burst_time', 'burst_force', 'back_movement', 'back_timestamps', 'starting_movement', 'starting_timestamps', 'mouse_poss', 'virtual_poss', 'poss_timestamps', 'score', 'question_asked', 'answer', 'pr_mouse_beginn', 'pr_mouse_pos', 'pr_target', 'pr_hit', 'pr_trajectory']
-    df = pd.DataFrame(columns=columns)
-    df["is_training"] = df["is_training"].astype(bool)
+    if os.path.isfile(str("data/" + user + "_data.csv")):
+        os.remove(str("data/" + user + "_data.csv"))
+    if os.path.isfile(str("data/" + user + "_beginning.csv")):
+        os.remove(str("data/" + user + "_beginning.csv"))
+    if os.path.isfile(str("data/" + user + "_ending.csv")):
+        os.remove(str("data/" + user + "_ending.csv"))
+    df = pd.DataFrame()
 
     trial_nr = 0
     block_nr = 1
@@ -139,23 +123,32 @@ def main(
         # Check for blocks
         if trial_nr % block_size == 0 and trial_nr != 0:
             block_nr += 1
-            if (block_nr > n_training + n_trials):
-                break
-
             if (block_nr >= n_training and training):
                 training = False
-                text_stim_trianing_complete.draw()
+                text_stim_training_complete.draw()
             else:
                 text_stim_block_complete.draw()
-
             win.flip()
+
+            # Write to file
+            try:
+                tmp = pd.read_csv(str("data/" + user + "_data.csv"))
+                tmp = pd.concat([tmp, df], ignore_index=True)
+            except FileNotFoundError:
+                tmp = df
+            tmp.to_csv(str("data/" + user + "_data.csv"), index=False)
+            df = pd.DataFrame()
+
             if event.waitKeys(keyList=["space", "q"])[0] == "q":
                 win.setMouseVisible(True)
                 win.close()
                 core.quit()
+            if (block_nr > n_training + n_trials):
+                break
 
         trial_nr += 1
         trial_data = {"trial_nr": [trial_nr], "training": [training], "block_nr": [block_nr]}
+        trial_data.update(PARAMS)
         back = False
         if len(event.getKeys(keyList=['q'])) > 0:
             win.setMouseVisible(True)
@@ -163,13 +156,13 @@ def main(
             core.quit()
 
         # PHASE 1: Preparation - move mouse back
-        burst_time, burst_dur, burst_force = burst_combis[block_nr - n_training - 1]
+        trial_burst_time, trial_burst_dur, trial_burst_force = burst_combis[block_nr - n_training - 1]
         back_home = False
         # mouse.setPos(top_pos)  # should this be changed?
         if (trial_nr % show_score_every_n_trials == 0 or training):
-            text_stim_score.text = (str(timing) + "\nScore: " + str(score)) + "\nTime:" + str(burst_time) + "\nDur:" + str(burst_dur) + "\nForce:" + str(burst_force)
+            text_stim_score.text = (str(timing) + "\nScore: " + str(score)) + "\nTime:" + str(trial_burst_time) + "\nDur:" + str(trial_burst_dur) + "\nForce:" + str(trial_burst_force)
         else:
-            text_stim_score.text = "\nTime:" + str(burst_time) + "\nDur:" + str(burst_dur) + "\nForce:" + str(burst_force)
+            text_stim_score.text = "\nTime:" + str(trial_burst_time) + "\nDur:" + str(trial_burst_dur) + "\nForce:" + str(trial_burst_force)
 
         # Move mouse back
         timer = core.Clock()
@@ -206,7 +199,7 @@ def main(
                     back = True
             win.flip()
             core.wait(refresh_rate)
-        trial_data.update({"back_movement": back_movement, "back_timestamps": back_timestamps, "starting_movement": starting_movement, "starting_timestamps": starting_timestamps})
+        trial_data.update({"back_movement": [back_movement], "back_timestamps": [back_timestamps], "starting_movement": [starting_movement], "starting_timestamps": [starting_timestamps]})
 
         # Pick distortion
 #        if distortion == "random":
@@ -218,7 +211,7 @@ def main(
         else:
             dist_type = np.random.choice(["none", "burst"], p=[1 - disturb_prob, disturb_prob])
 
-        trial_data.update({"dist_type": dist_type, "burst_dur": burst_dur, "burst_time": burst_time, "burst_force": burst_force})
+        trial_data.update({"dist_type": [dist_type], "trial_burst_dur": [trial_burst_dur], "trial_burst_time": [trial_burst_time], "trial_burst_force": [trial_burst_force]})
         timer = core.Clock()
         offset = 0
 
@@ -254,8 +247,8 @@ def main(
 
             # Apply Distortion
             # Es sieht anders aus als es ist ==> wir behalten die Information darüber, wo die Hand actually ist.
-            if (dist_type == "burst" and timer.getTime() >= burst_time and timer.getTime() <= burst_time + burst_dur):
-                offset += burst_force
+            if (dist_type == "burst" and timer.getTime() >= trial_burst_time and timer.getTime() <= trial_burst_time + trial_burst_dur):
+                offset += trial_burst_force
             virtual_mouse_pos = [mouse_pos[0] + offset, mouse_pos[1]]
 
             # Save movements with times
@@ -277,8 +270,8 @@ def main(
                 completed = True
             core.wait(refresh_rate)
 
-        score, timing = scoring(list(np.array(virtual_mouse_pos)[:, 1]), err)
-        trial_data.update({'mouse_poss': mouse_poss, 'virtual_poss': virtual_poss, 'poss_timestamps': poss_timestamps, 'score': score})
+        score, timing = scoring(list(np.array(virtual_poss)[:, 1]), err)
+        trial_data.update({'mouse_poss': [mouse_poss], 'virtual_poss': [virtual_poss], 'poss_timestamps': [poss_timestamps], 'score': [score]})
         # PHASE 3: Ask question
         if not (training) and (dist_type == "burst" or np.random.choice([True, False], p=[question_prob, 1 - question_prob])):
             text_stim_feedback.draw()
@@ -289,11 +282,11 @@ def main(
                 win.close()
                 core.quit()
             elif pressed_key[0][0] == "a" or pressed_key[0][0] == "left":
-                trial_data.update({"question_asked": True, "subj_answer": True})
+                trial_data.update({"question_asked": [True], "subj_answer": [True]})
             elif pressed_key[0][0] == "s" or pressed_key[0][0] == "right":
-                trial_data.update({"question_asked": True, "subj_answer": False})
+                trial_data.update({"question_asked": [True], "subj_answer": [False]})
         else:
-            trial_data.update({"question_asked": False})  # If no question is asked
+            trial_data.update({"question_asked": [False]})  # If no question is asked
             win.flip()
             core.wait(0.2)
 
@@ -304,7 +297,10 @@ def main(
             trial_data.update(pr_data)
 
         # Add data to df
-        df = pd.concat([df, pd.DataFrame.from_dict(trial_data)], ignore_index=True)
+        if (df.size < 1):
+            df = pd.DataFrame.from_dict(trial_data)
+        else:
+            df = pd.concat([df, pd.DataFrame.from_dict(trial_data)], ignore_index=True)
 
     if not (no_propriocept):
         # Proprioceptive baseline at end
@@ -316,13 +312,12 @@ def main(
     event.waitKeys()
     win.setMouseVisible(True)
     win.close()
-    df.to_csv(str("data/" + user + "_data.csv"), index=False)
     core.quit()
 
 
 def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
     # TODO: Add a text stim!
-    prop_data = pd.DataFrame(columns=["pr_mouse_beginn", "pr_mouse_pos", "pr_target", "pr_hit", "pr_trajectory"])
+    # prop_data = pd.DataFrame(columns=["pr_mouse_beginn", "pr_mouse_pos", "pr_target", "pr_hit", "pr_trajectory"])
     for i in range(n):
         single_data = {}
         if (filename != ""):
@@ -348,16 +343,16 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
         target_shape.draw()
         win.flip()
         hit = False
-        single_data = {"pr_mouse_beginn": mouse.getPos()}
+        single_data = {"pr_mouse_beginn": [mouse.getPos()]}
         trajectory = []
         while True:
-            trjectory.append(mouse.getPos())
+            trajectory.append(mouse.getPos())
             if mouse.isPressedIn(target_shape):
                 hit = True
                 break
             elif np.sum(mouse.getPressed()) != 0:
                 break
-        single_data.update({"pr_mouse_pos": [mouse.getPos()], "pr_target": [target], "pr_hit": [hit], "pr_trajectory": pr_trajectory})
+        single_data.update({"pr_mouse_pos": [mouse.getPos()], "pr_target": [target], "pr_hit": [hit], "pr_trajectory": [trajectory]})
         if show_feedback:
             if hit:
                 new_circle(win, target, r=touch_radius, color=(0, 240, 0)).draw()
@@ -369,7 +364,10 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
 
         if (filename == ""):
             return single_data
-        prop_data = pd.concat([prop_data, pd.DataFrame.from_dict(single_data)], ignore_index=True)
+        try:
+            prop_data = pd.concat([prop_data, pd.DataFrame.from_dict(single_data)], ignore_index=True)
+        except NameError:
+            prop_data = pd.DataFrame.from_dict(single_data)
 
     prop_data.to_csv(str("data/" + filename), index=True)
 
@@ -475,8 +473,8 @@ def repell(point, target, thresh, force):
 @click.option(
     "-u",
     "--user",
-    default=0,
-    type=int,
+    default="0",
+    type=str,
     show_default=True,
     help="ID of the participant",
 )
@@ -488,7 +486,7 @@ def repell(point, target, thresh, force):
     is_flag=True,
     help="Pass to save lefthanded flag in data",
 )
-def cli(screen: int, debug: bool, distortion: str, no_propriocept: bool, user: int):
+def cli(screen: int, debug: bool, distortion: str, no_propriocept: bool, user: str, lefthanded: bool):
     main(
         screen=screen,
         debug=debug,

@@ -1,3 +1,22 @@
 {
-    "test": [1,2,3],
+    "touch_radius": [25],
+    "n_proprioceptive_reporting": [2],
+    "n_training": [0],
+    "block_size": [4],
+    "orientation_point": [[0, -350]],
+    "beginning_point": [[0, -470]],
+    "target_pos": [[0, 300]],
+    "top_pos": [[0, 350]],
+    "time_score_dist_crit": [60],
+    "time_score_time_crit": [7],
+    "refresh_rate": [0.0001],
+    "disturb_prob": [1],
+    "burst_time": [[0.10, 0.13, 0.16]],
+    "burst_dur": [[0.1, 0.2, 0.3]],
+    "burst_force": [[-10, 10, -20, 20, -30, 30]],
+    "show_score_every_n_trials": [6],
+    "time_limit": [0.4],
+    "question_prob": [0.4],
+    "p_x": [200],
+    "p_y": [200]
 }
