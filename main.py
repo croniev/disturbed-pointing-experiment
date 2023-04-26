@@ -30,7 +30,7 @@ with open('params.json') as json_data:
     PARAMS = json.load(json_data)
 touch_radius, n_proprioceptive_reporting, n_training, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "n_training", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y"]]
 burst_combis = list(product(burst_time, burst_dur, burst_force))
-n_trials = len(burst_combis)  # How many normal blocks are performed
+n_trials = 4 # len(burst_combis)  # How many normal blocks are performed
 proprio_targets = [[-p_x, p_y], [p_x, p_y], [p_x, -p_y], [-p_x, -p_y]]  # Possible targets for proprioceptive reporting
 
 
@@ -62,19 +62,35 @@ def main(
                                 color=(0, 0, 0),
                                 colorSpace='rgb255')
     beginning_point_shape = new_circle(win, beginning_point, r=touch_radius, color=(200, 200, 255))
-    orientation_point_shape = new_circle(win, orientation_point, r=7, color=(200, 200, 255))
+    op_line_x = visual.Line(win,
+                            start=(orientation_point[0] - 10, orientation_point[1]),
+                            end=(orientation_point[0] + 10, orientation_point[1]),
+                            opacity=1,
+                            lineWidth=5,
+                            contrast=-1.0)
+    op_line_y = visual.Line(win,
+                            start=(orientation_point[0], orientation_point[1] - 10),
+                            end=(orientation_point[0], orientation_point[1] + 10),
+                            opacity=1,
+                            lineWidth=5,
+                            contrast=-1.0)
 
     # TEXTS
-    text_stim_block_complete = visual.TextStim(win,
+    text_stim_prop_reporting = visual.TextStim(win,
                                                units="norm",
-                                               text=("You have completed a block.\nRelax for a bit.\nPress 'space' when you are ready to continue."),
+                                               text=("Before the experiment starts we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to click on the white circle.\n\nPress <space> to continue."),
                                                wrapWidth=0.9,
                                                height=0.05)
-    text_stim_training_complete = visual.TextStim(win,
-                                                  units="norm",
-                                                  text=("You have completed the training block.\nPress 'space' to start with the experiment."),
-                                                  wrapWidth=0.9,
-                                                  height=0.05)
+    text_stim_prop_reporting_2 = visual.TextStim(win,
+                                                 units="norm",
+                                                 text=("Once again we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to click on the white circle.\n\nPress <space> to continue."),
+                                                 wrapWidth=0.9,
+                                                 height=0.05)
+    text_stim_block_complete_saving = visual.TextStim(win,
+                                                      units="norm",
+                                                      text=(),
+                                                      wrapWidth=0.9,
+                                                      height=0.05)
     text_stim_score = visual.TextStim(win,
                                       units="norm",
                                       wrapWidth=0.9,
@@ -82,26 +98,17 @@ def main(
                                       alignText="left")
     text_stim_feedback = visual.TextStim(win,
                                          units="norm",
-                                         text=("Press <A> or <left arrow> if you felt a distortion in your arm and <S> or <right arrow> if you did not."),
+                                         text=("Press <a> or <left arrow> if you felt a distortion in your arm.\n\nPress <s> or <right arrow> if you did not."),
                                          wrapWidth=0.9,
                                          height=0.05)
     text_stim_end = visual.TextStim(win,
                                     units="norm",
-                                    text=("You have completed the experiment!\nThank you very much for your participation, have a nice day."),
+                                    text=("You have completed the experiment!\nThank you very much for your participation and have a nice day!"),
                                     wrapWidth=0.9,
                                     height=0.05)
 
-    # START EXPERIMENT
-    mouse = Mouse(visible=True, win=win)  # Change visibility to False
-    if not (no_propriocept):
-        # Baseline proprioceptive reporting beginning
-        proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), True, win, mouse)
-    start_experiment(win, mouse)
-    core.wait(0.3)
-    score = None
-    timing = None
-
     # DATA COLLECTION
+    os.makedirs("./data", exist_ok=True)
     if os.path.isfile(str("data/" + user + "_data.csv")):
         os.remove(str("data/" + user + "_data.csv"))
     if os.path.isfile(str("data/" + user + "_beginning.csv")):
@@ -109,6 +116,19 @@ def main(
     if os.path.isfile(str("data/" + user + "_ending.csv")):
         os.remove(str("data/" + user + "_ending.csv"))
     df = pd.DataFrame()
+
+    # START EXPERIMENT
+    mouse = Mouse(visible=False, win=win)
+    if not (no_propriocept):
+        # Baseline proprioceptive reporting beginning
+        text_stim_prop_reporting.draw()
+        win.flip()
+        event.waitKeys(keyList=["space"])
+        proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), True, win, mouse)
+    start_experiment(win, mouse)
+    core.wait(0.3)
+    score = None
+    timing = None
 
     trial_nr = 0
     block_nr = 1
@@ -121,15 +141,16 @@ def main(
     while (True):
         # Check for blocks
         if trial_nr % block_size == 0 and trial_nr != 0:
+
             block_nr += 1
             if (block_nr >= n_training and training):
                 training = False
-                text_stim_training_complete.draw()
+                text_stim_block_complete_saving.text = "You have completed the training part.\n\nSaving data... please wait"
             else:
-                text_stim_block_complete.draw()
+                text_stim_block_complete_saving.text = "You have completed a block.\nRelax for a bit.\n\nSaving data... please wait"
+            text_stim_block_complete_saving.draw()
             win.flip()
 
-            # Write to file
             try:
                 tmp = pd.read_csv(str("data/" + user + "_data.csv"))
                 tmp = pd.concat([tmp, df], ignore_index=True)
@@ -137,6 +158,10 @@ def main(
                 tmp = df
             tmp.to_csv(str("data/" + user + "_data.csv"), index=False)
             df = pd.DataFrame()
+
+            text_stim_block_complete_saving.text = text_stim_block_complete_saving.text.replace("Saving data... please wait", "Press <space> to continue.")
+            text_stim_block_complete_saving.draw()
+            win.flip()
 
             if event.waitKeys(keyList=["space", "q"])[0] == "q":
                 win.setMouseVisible(True)
@@ -157,11 +182,11 @@ def main(
         # PHASE 1: Preparation - move mouse back
         trial_burst_time, trial_burst_dur, trial_burst_force = burst_combis[block_nr - n_training - 1]
         back_home = False
-        # mouse.setPos(top_pos)  # should this be changed?
+        mouse.setPos(top_pos)  # should this be changed?
         if (trial_nr % show_score_every_n_trials == 0 or training):
-            text_stim_score.text = (str(timing) + "\nScore: " + str(score)) + "\nTime:" + str(trial_burst_time) + "\nDur:" + str(trial_burst_dur) + "\nForce:" + str(trial_burst_force)
+            text_stim_score.text = (str(timing) + "\nScore: " + str(score)) + "\n\nTime:" + str(trial_burst_time) + "\nDur:" + str(trial_burst_dur) + "\nForce:" + str(trial_burst_force)
         else:
-            text_stim_score.text = "\nTime:" + str(trial_burst_time) + "\nDur:" + str(trial_burst_dur) + "\nForce:" + str(trial_burst_force)
+            text_stim_score.text = "\n\nTime:" + str(trial_burst_time) + "\nDur:" + str(trial_burst_dur) + "\nForce:" + str(trial_burst_force)
 
         # Move mouse back
         timer = core.Clock()
@@ -190,7 +215,8 @@ def main(
                     back_home = True
                     timer = core.Clock()
             else:  # PHASE 2: Move upwards
-                orientation_point_shape.draw()
+                op_line_x.draw()
+                op_line_y.draw()
                 new_circle(win, mouse_pos).draw()
                 starting_movement.append(mouse_pos)
                 starting_timestamps.append(timer.getTime())
@@ -258,7 +284,8 @@ def main(
             # Draw Stuff
             if training:
                 training_line.draw()
-            orientation_point_shape.draw()
+            op_line_x.draw()
+            op_line_y.draw()
             new_circle(win, virtual_mouse_pos).draw()
             win.flip()
 
@@ -303,6 +330,9 @@ def main(
 
     if not (no_propriocept):
         # Proprioceptive baseline at end
+        text_stim_prop_reporting_2.draw()
+        win.flip()
+        event.waitKeys(keyList=["space"])
         proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_ending.csv"), True, win, mouse)
 
     # END SESSION
@@ -322,7 +352,18 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
         if (filename != ""):
             # Move mouse to certain point
             beginning_point = [0, np.random.normal(loc=top_pos[1] + 50, scale=30)]
-            beginning_point_shape = new_circle(win, beginning_point, r=15, color=(200, 200, 255))
+            bp_line_x = visual.Line(win,
+                                    start=(beginning_point[0] - 10, beginning_point[1]),
+                                    end=(beginning_point[0] + 10, beginning_point[1]),
+                                    opacity=1,
+                                    lineWidth=3,
+                                    contrast=-1.0)
+            bp_line_y = visual.Line(win,
+                                    start=(beginning_point[0], beginning_point[1] - 10),
+                                    end=(beginning_point[0], beginning_point[1] + 10),
+                                    opacity=1,
+                                    lineWidth=3,
+                                    contrast=-1)
             ready = False
             while (not ready):
                 if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
@@ -330,7 +371,8 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
                     win.close()
                     core.quit()
 
-                beginning_point_shape.draw()
+                bp_line_x.draw()
+                bp_line_y.draw()
                 new_circle(win, mouse.getPos(), color=(0, 200, 5)).draw()
                 if math.dist(mouse.getPos(), beginning_point) < touch_radius:
                     ready = True
@@ -338,7 +380,7 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
                 core.wait(refresh_rate)
 
         win.flip()
-        core.wait(0.3)
+        core.wait(0.2)
         target = proprio_targets[np.random.randint(len(proprio_targets))]
         target_shape = new_circle(win, target, r=touch_radius)
         target_shape.draw()
@@ -360,7 +402,9 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
                 new_circle(win, target, r=touch_radius, color=(240, 0, 0)).draw()
             new_circle(win, mouse.getPos()).draw()
             win.flip()
-            core.wait(0.6)
+        else:
+            win.flip()
+        core.wait(0.45)
 
         if (filename == ""):
             return single_data
@@ -383,7 +427,7 @@ def start_experiment(win, mouse):
         win,
         units="norm",
         text=(
-            "Your task is to move your cursor up in a straight line. First you will complete some training trials, and then the main task will beginn.\nWhen the cursor is green, please move it back to the beginning point. It will then turn white, and you should again move it in a straight line.\n\nDuring the experiment, press 'q' to quit. \nPress space to continue."
+            "Your task is to move the cursor up in a straight line. Please dont lift your hand during the movement.\n\nFirst you will complete some training trials, and then the main task will beginn.\n\nWhen the cursor is green, please move it back to the beginning. It will then turn white and you can move it in a straight line to the top, cutting through the small circle.\nAfterwards, try to click on the presented white circle again.\n\nPress space to continue."
         ),
         wrapWidth=0.9,
         height=0.05,
