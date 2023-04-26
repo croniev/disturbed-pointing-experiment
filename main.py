@@ -487,7 +487,7 @@ def repell(point, target, thresh, force):
     show_default=True,
     is_flag=True,
     help="Pass to save lefthanded flag in data",
-}
+)
 def cli(screen: int, debug: bool, distortion: str, no_propriocept: bool, user: int):
     main(
         screen=screen,
