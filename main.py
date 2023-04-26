@@ -51,61 +51,11 @@ def main(
         fullscr=not (debug),  # FINAL: debug auf False setzen
     )
 
-    # Save Params and Flags in own file
+    # Save flags in PARAMS dict
     PARAMS.update({"debug": debug, "distortion": distortion, "no_propriocept": no_propriocept, "lefthanded": lefthanded})
 
-    # SHAPES
-    training_line = visual.Line(win,
-                                start=(0, -1000),
-                                end=(0, 1000),
-                                lineWidth=5,
-                                color=(0, 0, 0),
-                                colorSpace='rgb255')
-    beginning_point_shape = new_circle(win, beginning_point, r=touch_radius, color=(200, 200, 255))
-    op_line_x = visual.Line(win,
-                            start=(orientation_point[0] - 10, orientation_point[1]),
-                            end=(orientation_point[0] + 10, orientation_point[1]),
-                            opacity=1,
-                            lineWidth=5,
-                            contrast=-1.0)
-    op_line_y = visual.Line(win,
-                            start=(orientation_point[0], orientation_point[1] - 10),
-                            end=(orientation_point[0], orientation_point[1] + 10),
-                            opacity=1,
-                            lineWidth=5,
-                            contrast=-1.0)
-
-    # TEXTS
-    text_stim_prop_reporting = visual.TextStim(win,
-                                               units="norm",
-                                               text=("Before the experiment starts we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to click on the white circle.\n\nPress <space> to continue."),
-                                               wrapWidth=0.9,
-                                               height=0.05)
-    text_stim_prop_reporting_2 = visual.TextStim(win,
-                                                 units="norm",
-                                                 text=("Once again we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to click on the white circle.\n\nPress <space> to continue."),
-                                                 wrapWidth=0.9,
-                                                 height=0.05)
-    text_stim_block_complete_saving = visual.TextStim(win,
-                                                      units="norm",
-                                                      text=(),
-                                                      wrapWidth=0.9,
-                                                      height=0.05)
-    text_stim_score = visual.TextStim(win,
-                                      units="norm",
-                                      wrapWidth=0.9,
-                                      height=0.035,
-                                      alignText="left")
-    text_stim_feedback = visual.TextStim(win,
-                                         units="norm",
-                                         text=("Press <a> or <left arrow> if you felt a distortion in your arm.\n\nPress <s> or <right arrow> if you did not."),
-                                         wrapWidth=0.9,
-                                         height=0.05)
-    text_stim_end = visual.TextStim(win,
-                                    units="norm",
-                                    text=("You have completed the experiment!\nThank you very much for your participation and have a nice day!"),
-                                    wrapWidth=0.9,
-                                    height=0.05)
+    # create shapes and texts
+    training_line, beginning_point_shape, op_line_x, op_line_y, text_stim_prop_reporting, text_stim_prop_reporting_2, text_stim_block_complete_saving, text_stim_score, text_stim_feedback, text_stim_end = stims(win)
 
     # DATA COLLECTION
     os.makedirs("./data", exist_ok=True)
@@ -427,7 +377,7 @@ def start_experiment(win, mouse):
         win,
         units="norm",
         text=(
-            "Your task is to move the cursor up in a straight line. Please dont lift your hand during the movement.\n\nFirst you will complete some training trials, and then the main task will beginn.\n\nWhen the cursor is green, please move it back to the beginning. It will then turn white and you can move it in a straight line to the top, cutting through the small circle.\nAfterwards, try to click on the presented white circle again.\n\nPress space to continue."
+            "Your task is to move the cursor up in a straight line. Please dont lift your hand during the movement.\n\nFirst you will complete some training trials, and then the main task will beginn.\n\nWhen the cursor is green, please move it back to the beginning. It will then turn white and you can move it in a straight line to the top, cutting through the small cross.\nAfterwards, try to click on the presented white circle again.\n\nPress space to continue."
         ),
         wrapWidth=0.9,
         height=0.05,
@@ -488,6 +438,61 @@ def repell(point, target, thresh, force):
     newy = point[1] + np.sign(point[1] - target[1]) * math.ceil(force * max(0, thresh - dist))
     return (newx, newy)
 
+
+def stims(win):
+    # SHAPES
+    training_line = visual.Line(win,
+                                start=(0, -1000),
+                                end=(0, 1000),
+                                lineWidth=5,
+                                color=(0, 0, 0),
+                                colorSpace='rgb255')
+    beginning_point_shape = new_circle(win, beginning_point, r=touch_radius, color=(200, 200, 255))
+    op_line_x = visual.Line(win,
+                            start=(orientation_point[0] - 10, orientation_point[1]),
+                            end=(orientation_point[0] + 10, orientation_point[1]),
+                            opacity=1,
+                            lineWidth=5,
+                            contrast=-1.0)
+    op_line_y = visual.Line(win,
+                            start=(orientation_point[0], orientation_point[1] - 10),
+                            end=(orientation_point[0], orientation_point[1] + 10),
+                            opacity=1,
+                            lineWidth=5,
+                            contrast=-1.0)
+
+    # TEXTS
+    text_stim_prop_reporting = visual.TextStim(win,
+                                               units="norm",
+                                               text=("Before the experiment starts we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to click on the white circle.\n\nPress <space> to continue."),
+                                               wrapWidth=0.9,
+                                               height=0.05)
+    text_stim_prop_reporting_2 = visual.TextStim(win,
+                                                 units="norm",
+                                                 text=("Once again we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to click on the white circle.\n\nPress <space> to continue."),
+                                                 wrapWidth=0.9,
+                                                 height=0.05)
+    text_stim_block_complete_saving = visual.TextStim(win,
+                                                      units="norm",
+                                                      text=(),
+                                                      wrapWidth=0.9,
+                                                      height=0.05)
+    text_stim_score = visual.TextStim(win,
+                                      units="norm",
+                                      wrapWidth=0.9,
+                                      height=0.035,
+                                      alignText="left")
+    text_stim_feedback = visual.TextStim(win,
+                                         units="norm",
+                                         text=("Press <a> or <left arrow> if you felt a distortion in your arm.\n\nPress <s> or <right arrow> if you did not."),
+                                         wrapWidth=0.9,
+                                         height=0.05)
+    text_stim_end = visual.TextStim(win,
+                                    units="norm",
+                                    text=("You have completed the experiment!\nThank you very much for your participation and have a nice day!"),
+                                    wrapWidth=0.9,
+                                    height=0.05)
+    return [training_line, beginning_point_shape, op_line_x, op_line_y, text_stim_prop_reporting, text_stim_prop_reporting_2, text_stim_block_complete_saving, text_stim_score, text_stim_feedback, text_stim_end]
 
 @click.command()
 @click.option(
