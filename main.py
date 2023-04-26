@@ -31,7 +31,6 @@ with open('params.json') as json_data:
 touch_radius, n_proprioceptive_reporting, n_training, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "n_training", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y"]]
 burst_combis = list(product(burst_time, burst_dur, burst_force))
 n_trials = len(burst_combis)  # How many normal blocks are performed
-prop_report_beginnings = [beginning_point, top_pos, [0, 0]]  # Points to move to before proprioceptive reporting
 proprio_targets = [[-p_x, p_y], [p_x, p_y], [p_x, -p_y], [-p_x, -p_y]]  # Possible targets for proprioceptive reporting
 
 
@@ -322,8 +321,8 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
         single_data = {}
         if (filename != ""):
             # Move mouse to certain point
-            beginning_point = prop_report_beginnings[np.random.choice(len(prop_report_beginnings))]
-            beginning_point_shape = new_circle(win, beginning_point, r=touch_radius, color=(200, 200, 255))
+            beginning_point = [0, np.random.normal(loc=top_pos[1] + 50, scale=30)]
+            beginning_point_shape = new_circle(win, beginning_point, r=15, color=(200, 200, 255))
             ready = False
             while (not ready):
                 if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
@@ -338,6 +337,8 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
                 win.flip()
                 core.wait(refresh_rate)
 
+        win.flip()
+        core.wait(0.3)
         target = proprio_targets[np.random.randint(len(proprio_targets))]
         target_shape = new_circle(win, target, r=touch_radius)
         target_shape.draw()
@@ -347,10 +348,9 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
         trajectory = []
         while True:
             trajectory.append(mouse.getPos())
-            if mouse.isPressedIn(target_shape):
-                hit = True
-                break
-            elif np.sum(mouse.getPressed()) != 0:
+            if np.sum(mouse.getPressed()) != 0:
+                if math.dist(mouse.getPos(), target) < touch_radius + 10:
+                    hit = True
                 break
         single_data.update({"pr_mouse_pos": [mouse.getPos()], "pr_target": [target], "pr_hit": [hit], "pr_trajectory": [trajectory]})
         if show_feedback:
@@ -369,6 +369,12 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
         except NameError:
             prop_data = pd.DataFrame.from_dict(single_data)
 
+    visual.TextStim(win,
+                    units="norm",
+                    text=("Saving data...\nPlease wait a moment"),
+                    wrapWidth=0.9,
+                    height=0.05).draw()
+    win.flip()
     prop_data.to_csv(str("data/" + filename), index=True)
 
 
