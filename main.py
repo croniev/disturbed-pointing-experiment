@@ -1,21 +1,12 @@
-from pathlib import Path
 import os
-from PIL.Image import blend
 import numpy as np
 import pandas as pd
-import random
-from datetime import datetime
-import sys
 import click
 import warnings
-from psychopy import prefs, monitors
-from psychopy.visual.window import Window
+from psychopy import prefs, monitors, core, event, visual
 from psychopy.event import Mouse
-from psychopy import core
-from psychopy.tools import monitorunittools
 from itertools import product
 import math
-from psychopy import core, event, visual
 import bisect
 import json
 
@@ -31,8 +22,23 @@ with open('params.json') as json_data:
 touch_radius, n_proprioceptive_reporting, n_training, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "n_training", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y"]]
 burst_combis = list(product(burst_time, burst_dur, burst_force))
 n_trials = 4 # len(burst_combis)  # How many normal blocks are performed
+
+
+def norm2pix(pos, mon):
+    mon_size = mon.getSizePix()
+    return [round(pos[0] * mon_size[0] / 2), round(pos[1] * mon_size[1] / 2)]
+
+
+# Normalizing with the screen specs.
+mon = monitors.Monitor("monitor_disturbed_pointing")
+p_x, p_y = norm2pix([p_x, p_y], mon)
 proprio_targets = [[-p_x, p_y], [p_x, p_y], [p_x, -p_y], [-p_x, -p_y]]  # Possible targets for proprioceptive reporting
 
+
+orientation_point = norm2pix(orientation_point, mon)
+beginning_point = norm2pix(beginning_point, mon)
+target_pos = norm2pix(target_pos, mon)
+top_pos = norm2pix(top_pos, mon)
 
 def main(
     screen: int = 0,

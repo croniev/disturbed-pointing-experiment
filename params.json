@@ -3,10 +3,10 @@
     "n_proprioceptive_reporting": [4],
     "n_training": [1],
     "block_size": [4],
-    "orientation_point": [[0, -350]],
-    "beginning_point": [[0, -470]],
-    "target_pos": [[0, 300]],
-    "top_pos": [[0, 350]],
+    "orientation_point": [[0, -0.648]],
+    "beginning_point": [[0, -0.87]],
+    "target_pos": [[0, 0.555]],
+    "top_pos": [[0, 0.648]],
     "time_score_dist_crit": [60],
     "time_score_time_crit": [7],
     "refresh_rate": [0.0001],
@@ -17,6 +17,6 @@
     "show_score_every_n_trials": [6],
     "time_limit": [0.4],
     "question_prob": [0.4],
-    "p_x": [200],
-    "p_y": [200]
+    "p_x": [0.208],
+    "p_y": [0.370]
 }
