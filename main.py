@@ -511,7 +511,7 @@ def stims(win):
                                       alignText="left")
     text_stim_feedback = visual.TextStim(win,
                                          units="norm",
-                                         text=("Press <a> or <left arrow> if you felt a distortion in your arm.\n\nPress <s> or <right arrow> if you did not."),
+                                         text=("Press <a> or <left arrow> if you felt like force was applied to your arm.\n\nPress <s> or <right arrow> if you did not."),
                                          wrapWidth=0.9,
                                          height=0.05)
     text_stim_end = visual.TextStim(win,
