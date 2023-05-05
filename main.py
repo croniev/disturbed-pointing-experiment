@@ -19,7 +19,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 # Parameters
 with open('params.json') as json_data:
     PARAMS = json.load(json_data)
-touch_radius, n_proprioceptive_reporting, n_training, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "n_training", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y"]]
+touch_radius, n_proprioceptive_reporting, do_training, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "do_training", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y"]]
 burst_combis = list(product(burst_time, burst_dur, burst_force))
 n_trials = 4 # len(burst_combis)  # How many normal blocks are performed
 
@@ -61,7 +61,7 @@ def main(
     PARAMS.update({"debug": debug, "distortion": distortion, "no_propriocept": no_propriocept, "lefthanded": lefthanded})
 
     # create shapes and texts
-    training_line, beginning_point_shape, op_line_x, op_line_y, text_stim_prop_reporting, text_stim_prop_reporting_2, text_stim_block_complete_saving, text_stim_score, text_stim_feedback, text_stim_end = stims(win)
+    training_line, beginning_point_shape, op_line_x, op_line_y, text_stim_prop_reporting, text_stim_prop_reporting_2, text_stim_block_complete_saving, text_stim_score, text_stim_feedback, text_stim_end, text_stim_entering_phase2, text_stim_begin = stims(win)
 
     # DATA COLLECTION
     os.makedirs("./data", exist_ok=True)
@@ -75,35 +75,31 @@ def main(
 
     # START EXPERIMENT
     mouse = Mouse(visible=False, win=win)
-    if not (no_propriocept):
-        # Baseline proprioceptive reporting beginning
-        text_stim_prop_reporting.draw()
-        win.flip()
-        event.waitKeys(keyList=["space"])
-        proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), True, win, mouse)
+
     start_experiment(win, mouse)
     core.wait(0.3)
     score = None
     timing = None
 
     trial_nr = 0
-    block_nr = 1
-    if (n_training > 0):
+    block_nr = 0
+    phase2 = False
+    if (do_training == 1):
         training = True
     else:
         training = False
+        phase2 = True
 
     # Main loop
     while (True):
         # Check for blocks
         if trial_nr % block_size == 0 and trial_nr != 0:
 
-            block_nr += 1
-            if (block_nr >= n_training and training):
-                training = False
-                text_stim_block_complete_saving.text = "You have completed the training part.\n\nSaving data... please wait"
+            if (training):
+                text_stim_block_complete_saving.text = "You have completed a training block.\n\nSaving data... please wait"
             else:
                 text_stim_block_complete_saving.text = "You have completed a block.\nRelax for a bit.\n\nSaving data... please wait"
+                block_nr += 1
             text_stim_block_complete_saving.draw()
             win.flip()
 
@@ -115,15 +111,38 @@ def main(
             tmp.to_csv(str("data/" + user + "_data.csv"), index=False)
             df = pd.DataFrame()
 
-            text_stim_block_complete_saving.text = text_stim_block_complete_saving.text.replace("Saving data... please wait", "Press <space> to continue.")
+            if (training and not phase2):
+                text_stim_block_complete_saving.text = text_stim_block_complete_saving.text.replace("Saving data... please wait", "Press <space> to perform another block or <a> to continue to training phase two.")
+            elif (training and phase2):
+                text_stim_block_complete_saving.text = text_stim_block_complete_saving.text.replace("Saving data... please wait", "Press <space> to perform another block or <a> to continue to the main experiment.")
+            else:
+                text_stim_block_complete_saving.text = text_stim_block_complete_saving.text.replace("Saving data... please wait", "Press <space> to continue.")
             text_stim_block_complete_saving.draw()
             win.flip()
 
-            if event.waitKeys(keyList=["space", "q"])[0] == "q":
+            pressed_key = event.waitKeys(keyList=["space", "a", "q"])[0]
+            if pressed_key == "q":
                 win.setMouseVisible(True)
                 win.close()
                 core.quit()
-            if (block_nr > n_training + n_trials):
+            elif pressed_key == "a" and not phase2:
+                phase2 = True
+                text_stim_entering_phase2.draw()
+                win.flip()
+                event.waitKeys(keyList=["space"])
+            elif pressed_key == "a" and phase2:
+                training = False
+                trial_nr = 0
+                # Baseline proprioceptive reporting beginning
+                if not (no_propriocept):
+                    text_stim_prop_reporting.draw()
+                    win.flip()
+                    event.waitKeys(keyList=["space"])
+                    proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), True, win, mouse)
+                    text_stim_begin.draw()
+                    win.flip()
+                    event.waitKeys(keyList=["space"])
+            if (block_nr > n_trials):
                 break
 
         trial_nr += 1
@@ -136,7 +155,7 @@ def main(
             core.quit()
 
         # PHASE 1: Preparation - move mouse back
-        trial_burst_time, trial_burst_dur, trial_burst_force = burst_combis[block_nr - n_training - 1]
+        trial_burst_time, trial_burst_dur, trial_burst_force = burst_combis[block_nr]  # TODO: pick randomly
         back_home = False
         mouse.setPos(top_pos)  # should this be changed?
         if (trial_nr % show_score_every_n_trials == 0 or training):
@@ -255,7 +274,7 @@ def main(
         score, timing = scoring(list(np.array(virtual_poss)[:, 1]), err)
         trial_data.update({'mouse_poss': [mouse_poss], 'virtual_poss': [virtual_poss], 'poss_timestamps': [poss_timestamps], 'score': [score]})
         # PHASE 3: Ask question
-        if not (training) and (dist_type == "burst" or np.random.choice([True, False], p=[question_prob, 1 - question_prob])):
+        if phase2 and (dist_type == "burst" or np.random.choice([True, False], p=[question_prob, 1 - question_prob])):
             text_stim_feedback.draw()
             win.flip()
             pressed_key = event.waitKeys(keyList=["q", "a", "s", "left", "right"])
@@ -274,7 +293,7 @@ def main(
 
         # PHASE 4: Proprioception reporting guess
         # TODO: Only makes sense when trackpad is absolute, not relative
-        if (not (no_propriocept)):
+        if (not (no_propriocept) and phase2):
             pr_data = proprioceptive_reporting(1, "", training, win, mouse)
             trial_data.update(pr_data)
 
@@ -371,7 +390,7 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
 
     visual.TextStim(win,
                     units="norm",
-                    text=("Saving data...\nPlease wait a moment"),
+                    text=("Well Done!\n\nSaving data...\nPlease wait a moment"),
                     wrapWidth=0.9,
                     height=0.05).draw()
     win.flip()
@@ -498,7 +517,17 @@ def stims(win):
                                     text=("You have completed the experiment!\nThank you very much for your participation and have a nice day!"),
                                     wrapWidth=0.9,
                                     height=0.05)
-    return [training_line, beginning_point_shape, op_line_x, op_line_y, text_stim_prop_reporting, text_stim_prop_reporting_2, text_stim_block_complete_saving, text_stim_score, text_stim_feedback, text_stim_end]
+    text_stim_entering_phase2 = visual.TextStim(win,
+                                                units="norm",
+                                                text=("After moving you may now be asked a question. Please do not move your hand position when anwering.\nAfterwards you have to click on the target while your mouse is hidden."),
+                                                wrapWidth=0.9,
+                                                height=0.05)
+    text_stim_begin = visual.TextStim(win,
+                                      units="norm",
+                                      text=("Training is over.\nPress <space> to begin with the experiment!"),
+                                      wrapWidth=0.9,
+                                      height=0.05)
+    return [training_line, beginning_point_shape, op_line_x, op_line_y, text_stim_prop_reporting, text_stim_prop_reporting_2, text_stim_block_complete_saving, text_stim_score, text_stim_feedback, text_stim_end, text_stim_entering_phase2, text_stim_begin]
 
 @click.command()
 @click.option(

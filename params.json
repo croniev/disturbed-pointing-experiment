@@ -1,7 +1,7 @@
 {
     "touch_radius": [25],
     "n_proprioceptive_reporting": [4],
-    "n_training": [1],
+    "do_training": [1],
     "block_size": [4],
     "orientation_point": [[0, -0.648]],
     "beginning_point": [[0, -0.87]],
