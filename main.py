@@ -21,7 +21,7 @@ with open('params.json') as json_data:
     PARAMS = json.load(json_data)
 touch_radius, n_proprioceptive_reporting, do_training, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "do_training", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y"]]
 burst_combis = list(product(burst_time, burst_dur, burst_force))
-n_trials = 4 # len(burst_combis)  # How many normal blocks are performed
+n_trials = len(burst_combis)  # How many normal blocks are performed? ~16 for each combination
 
 
 def norm2pix(pos, mon):
@@ -39,6 +39,7 @@ orientation_point = norm2pix(orientation_point, mon)
 beginning_point = norm2pix(beginning_point, mon)
 target_pos = norm2pix(target_pos, mon)
 top_pos = norm2pix(top_pos, mon)
+
 
 def main(
     screen: int = 0,
