@@ -19,7 +19,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 # Parameters
 with open('params.json') as json_data:
     PARAMS = json.load(json_data)
-touch_radius, n_proprioceptive_reporting, do_training, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "do_training", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y"]]
+touch_radius, n_proprioceptive_reporting, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y"]]
 burst_combis = list(product(burst_time, burst_dur, burst_force))
 n_trials = len(burst_combis)  # How many normal blocks are performed? ~16 for each combination
 
@@ -46,6 +46,7 @@ def main(
     debug: bool = False,
     distortion: str = "random",
     no_propriocept: bool = False,
+    no_training: bool = False,
     user: str = "0",
     lefthanded: bool = False,
 ) -> None:
@@ -85,7 +86,7 @@ def main(
     trial_nr = 0
     block_nr = 0
     phase2 = False
-    if (do_training == 1):
+    if (not no_training):
         training = True
     else:
         training = False
@@ -520,7 +521,7 @@ def stims(win):
                                     height=0.05)
     text_stim_entering_phase2 = visual.TextStim(win,
                                                 units="norm",
-                                                text=("After moving you may now be asked a question. Please do not move your hand position when anwering.\nAfterwards you have to click on the target while your mouse is hidden."),
+                                                text=("After moving you may now be asked a question. Please do not move your hand position when anwering.\nAfterwards you have to click on the target while your mouse is hidden.\nPress <space> to continue."),
                                                 wrapWidth=0.9,
                                                 height=0.05)
     text_stim_begin = visual.TextStim(win,
@@ -562,6 +563,14 @@ def stims(win):
     help="Pass to disable proprioceptive reporting after moving.",
 )
 @click.option(
+    "-t",
+    "--no-training",
+    default=False,
+    show_default=True,
+    is_flag=True,
+    help="Pass to disable training sessions at the beginning",
+)
+@click.option(
     "-u",
     "--user",
     default="0",
@@ -577,12 +586,13 @@ def stims(win):
     is_flag=True,
     help="Pass to save lefthanded flag in data",
 )
-def cli(screen: int, debug: bool, distortion: str, no_propriocept: bool, user: str, lefthanded: bool):
+def cli(screen: int, debug: bool, distortion: str, no_propriocept: bool, no_training: bool, user: str, lefthanded: bool):
     main(
         screen=screen,
         debug=debug,
         distortion=distortion,
         no_propriocept=no_propriocept,
+        no_training=no_training,
         user=user,
         lefthanded=lefthanded
     )

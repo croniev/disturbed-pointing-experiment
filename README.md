@@ -7,7 +7,8 @@ Please do not clone if you are planning on participating in the experiment!!
 - before starting run `python create_monitor_file.py --width_px <px> --height_px <px>` with the specs of the monitor you are using.  
 - run main.py
 	- debug: disable fullscreen
-    - no_propriocept: disable baseline and trial proprioceptive reporting
+    - no_propriocept (-n): disable baseline and trial proprioceptive reporting
+    - no_training (-t): don't do any training blocks
     - user: user ID
     - lefthanded: save data as lefthanded
 	<!---
