@@ -194,7 +194,7 @@ def main(
             mouse_pos = mouse.getPos()
             if not (back_home):
                 beginning_point_shape.draw()
-                new_circle(win, mouse_pos, color=(0, 200, 5)).draw()  # DEBUG
+                # new_circle(win, mouse_pos, color=(0, 200, 5)).draw()
                 back_movement.append(mouse_pos)
                 back_timestamps.append(timer.getTime())
                 if math.dist(mouse_pos, beginning_point) < touch_radius:
@@ -379,7 +379,7 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
         trajectory = []
         while True:
             trajectory.append(mouse.getPos())
-            if np.sum(mouse.getPressed()) != 0:  # TODO: nicht click1 sondern click2
+            if mouse.getPressed()[1] != 0:
                 if math.dist(mouse.getPos(), target) < touch_radius + 10:
                     hit = True
                 break
