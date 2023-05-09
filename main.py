@@ -19,9 +19,9 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 # Parameters
 with open('params.json') as json_data:
     PARAMS = json.load(json_data)
-touch_radius, n_proprioceptive_reporting, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y, burst_t_d_fs = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y", "burst_t_d_fs"]]
+touch_radius, n_proprioceptive_reporting, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y, burst_t_f_ds = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y", "burst_t_f_ds"]]
 burst_combis = list(product(burst_time, burst_dur, burst_force))
-n_trials = len(burst_combis)  # How many normal blocks are performed? ~16 for each combination
+n_trials = np.round(np.round(1 + len(burst_t_f_ds) * 16 / disturb_prob) / block_size)  # How many normal blocks are performed? ~16 for each combination
 
 
 def norm2pix(pos, mon):
@@ -156,7 +156,7 @@ def main(
 
         # PHASE 1: Preparation - move mouse back
         back_home = False
-        trial_burst_time, trial_burst_dur, trial_burst_force = burst_t_d_fs[np.random.randint(len(burst_t_d_fs))]  # burst_combis[block_nr]  # TODO: pick randomly
+        trial_burst_time, trial_burst_force, trial_burst_dur = burst_t_f_ds[np.random.randint(len(burst_t_f_ds))]  # burst_combis[block_nr]  # TODO: pick randomly
         # mouse.setPos(top_pos)  # should this be changed?
         if (trial_nr % show_score_every_n_trials == 0 or training):
             text_stim_score.text = (str(timing) + "\nScore: " + str(score)) + "\n\nTime:" + str(trial_burst_time) + "\nDur:" + str(trial_burst_dur) + "\nForce:" + str(trial_burst_force)
@@ -214,7 +214,7 @@ def main(
 
         trial_data.update({"dist_type": [dist_type]})
         if dist_type == "burst":
-            # trial_burst_time, trial_burst_dur, trial_burst_force = burst_t_d_fs[np.random.randint(len(burst_t_d_fs))]  # burst_combis[block_nr]  # TODO: pick randomly
+            # trial_burst_time, trial_burst_dur, trial_burst_force = burst_t_f_ds[np.random.randint(len(burst_t_f_ds))]  # burst_combis[block_nr]  # TODO: pick randomly
             trial_data.update({"trial_burst_dur": [trial_burst_dur], "trial_burst_time": [trial_burst_time], "trial_burst_force": [trial_burst_force]})
 
         timer = core.Clock()
@@ -264,8 +264,8 @@ def main(
             # Draw Stuff
             if training:
                 training_line.draw()
-            op_line_x.draw()
-            op_line_y.draw()
+            # op_line_x.draw()
+            # op_line_y.draw()
             new_circle(win, virtual_mouse_pos).draw()
             win.flip()
 
@@ -278,7 +278,7 @@ def main(
 
         time_score, timing = time_scoring(list(np.array(virtual_poss)[:, 1]))
         # score for straight
-        score = time_score - err
+        score = np.round(time_score - err)
         trial_data.update({'mouse_poss': [mouse_poss], 'virtual_poss': [virtual_poss], 'poss_timestamps': [poss_timestamps], 'score': [score], 'time_score': [time_score], 'err': [err], 'timing': [timing]})
         # PHASE 3: Ask question
         if phase2 and (dist_type == "burst" or np.random.choice([True, False], p=[question_prob, 1 - question_prob])):
