@@ -6,6 +6,7 @@ import warnings
 from psychopy import prefs, monitors, core, event, visual
 from psychopy.event import Mouse
 from itertools import product
+from random import shuffle
 import math
 import bisect
 import json
@@ -20,8 +21,10 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 with open('params.json') as json_data:
     PARAMS = json.load(json_data)
 touch_radius, n_proprioceptive_reporting, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y, burst_t_f_ds = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y", "burst_t_f_ds"]]
-burst_combis = list(product(burst_time, burst_dur, burst_force))
-n_trials = np.round(np.round(1 + len(burst_t_f_ds) * 16 / disturb_prob) / block_size)  # How many normal blocks are performed? ~16 for each combination
+# burst_combis = list(product(burst_time, burst_dur, burst_force))
+trial_list = [k for k in burst_t_f_ds for i in range(16)] + [[0, 0, 0] for i in range(np.round(16 * len(burst_t_f_ds) * (1 - disturb_prob) / disturb_prob))]
+n_trials = np.round(len(trial_list) / block_size)  # How many normal blocks are performed? ~16 for each combination
+shuffle(trial_list)
 
 
 def norm2pix(pos, mon):
@@ -156,7 +159,10 @@ def main(
 
         # PHASE 1: Preparation - move mouse back
         back_home = False
-        trial_burst_time, trial_burst_force, trial_burst_dur = burst_t_f_ds[np.random.randint(len(burst_t_f_ds))]  # burst_combis[block_nr]  # TODO: pick randomly
+        try:
+            trial_burst_time, trial_burst_force, trial_burst_dur = trial_list[trial_nr - 1]  # burst_combis[block_nr]
+        except IndexError:
+            trial_burst_time, trial_burst_force, trial_burst_dur = 0, 0, 0
         # mouse.setPos(top_pos)  # should this be changed?
         if (trial_nr % show_score_every_n_trials == 0 or training):
             text_stim_score.text = (str(timing) + "\nScore: " + str(score)) + "\n\nTime:" + str(trial_burst_time) + "\nDur:" + str(trial_burst_dur) + "\nForce:" + str(trial_burst_force)
@@ -206,16 +212,8 @@ def main(
 #            dist_type = np.random.choice(["none","straight","rotate","repell","burst"],p=[0.8,0.05,0.05,0.05,0.05])
 #        else:
 #            dist_type = distortion
-        if (training):
-            dist_type = "none"
-        else:
-            dist_type = np.random.choice(["none", "burst"], p=[1 - disturb_prob, disturb_prob])
-            # trial_burst_time, trial_burst_dur, trial_burst_force = 0, 0, 0
 
-        trial_data.update({"dist_type": [dist_type]})
-        if dist_type == "burst":
-            # trial_burst_time, trial_burst_dur, trial_burst_force = burst_t_f_ds[np.random.randint(len(burst_t_f_ds))]  # burst_combis[block_nr]  # TODO: pick randomly
-            trial_data.update({"trial_burst_dur": [trial_burst_dur], "trial_burst_time": [trial_burst_time], "trial_burst_force": [trial_burst_force]})
+        trial_data.update({"trial_burst_dur": [trial_burst_dur], "trial_burst_time": [trial_burst_time], "trial_burst_force": [trial_burst_force]})
 
         timer = core.Clock()
         offset = 0
@@ -252,7 +250,7 @@ def main(
 
             # Apply Distortion
             # Es sieht anders aus als es ist ==> wir behalten die Information darüber, wo die Hand actually ist.
-            if (dist_type == "burst" and timer.getTime() >= trial_burst_time and timer.getTime() <= trial_burst_time + trial_burst_dur):
+            if (timer.getTime() >= trial_burst_time and timer.getTime() <= trial_burst_time + trial_burst_dur):
                 offset += trial_burst_force
             virtual_mouse_pos = [mouse_pos[0] + offset, mouse_pos[1]]
 
@@ -281,7 +279,7 @@ def main(
         score = np.round(time_score - err)
         trial_data.update({'mouse_poss': [mouse_poss], 'virtual_poss': [virtual_poss], 'poss_timestamps': [poss_timestamps], 'score': [score], 'time_score': [time_score], 'err': [err], 'timing': [timing]})
         # PHASE 3: Ask question
-        if phase2 and (dist_type == "burst" or np.random.choice([True, False], p=[question_prob, 1 - question_prob])):
+        if phase2 and (burst_force != 0 or np.random.choice([True, False], p=[question_prob, 1 - question_prob])):
             text_stim_feedback.draw()
             win.flip()
             pressed_key = event.waitKeys(keyList=["q", "a", "s", "left", "right"])
