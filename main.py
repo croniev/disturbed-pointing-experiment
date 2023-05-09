@@ -22,7 +22,7 @@ with open('params.json') as json_data:
     PARAMS = json.load(json_data)
 touch_radius, n_proprioceptive_reporting, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y, burst_t_f_ds = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y", "burst_t_f_ds"]]
 # burst_combis = list(product(burst_time, burst_dur, burst_force))
-trial_list = [k for k in burst_t_f_ds for i in range(16)] + [[0, 0, 0] for i in range(np.round(16 * len(burst_t_f_ds) * (1 - disturb_prob) / disturb_prob))]
+trial_list = [k for k in burst_t_f_ds for i in range(16)] + [[0, 0, 0] for i in range(int(np.round(16 * len(burst_t_f_ds) * (1 - disturb_prob) / disturb_prob)))]
 n_trials = np.round(len(trial_list) / block_size)  # How many normal blocks are performed? ~16 for each combination
 shuffle(trial_list)
 
@@ -250,7 +250,7 @@ def main(
 
             # Apply Distortion
             # Es sieht anders aus als es ist ==> wir behalten die Information darüber, wo die Hand actually ist.
-            if (timer.getTime() >= trial_burst_time and timer.getTime() <= trial_burst_time + trial_burst_dur):
+            if (not training and timer.getTime() >= trial_burst_time and timer.getTime() <= trial_burst_time + trial_burst_dur):
                 offset += trial_burst_force
             virtual_mouse_pos = [mouse_pos[0] + offset, mouse_pos[1]]
 
