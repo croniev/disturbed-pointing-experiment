@@ -19,7 +19,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 # Parameters
 with open('params.json') as json_data:
     PARAMS = json.load(json_data)
-touch_radius, n_proprioceptive_reporting, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y"]]
+touch_radius, n_proprioceptive_reporting, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y, burst_t_d_fs = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y", "burst_t_d_fs"]]
 burst_combis = list(product(burst_time, burst_dur, burst_force))
 n_trials = len(burst_combis)  # How many normal blocks are performed? ~16 for each combination
 
@@ -92,10 +92,8 @@ def main(
         training = False
         phase2 = True
 
-    # Main loop
-    while (True):
-        # Check for blocks
-        if trial_nr % block_size == 0 and trial_nr != 0:
+    while (True):  # Main loop
+        if trial_nr % block_size == 0 and trial_nr != 0:  # Check for blocks
 
             if (training):
                 text_stim_block_complete_saving.text = "You have completed a training block.\n\nSaving data... please wait"
@@ -144,7 +142,7 @@ def main(
                     text_stim_begin.draw()
                     win.flip()
                     event.waitKeys(keyList=["space"])
-            if (block_nr > n_trials):
+            if (block_nr >= n_trials):
                 break
 
         trial_nr += 1
@@ -157,9 +155,9 @@ def main(
             core.quit()
 
         # PHASE 1: Preparation - move mouse back
-        trial_burst_time, trial_burst_dur, trial_burst_force = burst_combis[block_nr]  # TODO: pick randomly
         back_home = False
-        mouse.setPos(top_pos)  # should this be changed?
+        trial_burst_time, trial_burst_dur, trial_burst_force = burst_t_d_fs[np.random.randint(len(burst_t_d_fs))]  # burst_combis[block_nr]  # TODO: pick randomly
+        # mouse.setPos(top_pos)  # should this be changed?
         if (trial_nr % show_score_every_n_trials == 0 or training):
             text_stim_score.text = (str(timing) + "\nScore: " + str(score)) + "\n\nTime:" + str(trial_burst_time) + "\nDur:" + str(trial_burst_dur) + "\nForce:" + str(trial_burst_force)
         else:
@@ -185,7 +183,7 @@ def main(
             mouse_pos = mouse.getPos()
             if not (back_home):
                 beginning_point_shape.draw()
-                new_circle(win, mouse_pos, color=(0, 200, 5)).draw()
+                # new_circle(win, mouse_pos, color=(0, 200, 5)).draw()
                 back_movement.append(mouse_pos)
                 back_timestamps.append(timer.getTime())
                 if math.dist(mouse_pos, beginning_point) < touch_radius:
@@ -197,7 +195,7 @@ def main(
                 new_circle(win, mouse_pos).draw()
                 starting_movement.append(mouse_pos)
                 starting_timestamps.append(timer.getTime())
-                if math.dist(mouse_pos, orientation_point) < touch_radius:
+                if math.dist(mouse_pos, orientation_point) < 25:  # touch_radius:
                     back = True
             win.flip()
             core.wait(refresh_rate)
@@ -212,8 +210,13 @@ def main(
             dist_type = "none"
         else:
             dist_type = np.random.choice(["none", "burst"], p=[1 - disturb_prob, disturb_prob])
+            # trial_burst_time, trial_burst_dur, trial_burst_force = 0, 0, 0
 
-        trial_data.update({"dist_type": [dist_type], "trial_burst_dur": [trial_burst_dur], "trial_burst_time": [trial_burst_time], "trial_burst_force": [trial_burst_force]})
+        trial_data.update({"dist_type": [dist_type]})
+        if dist_type == "burst":
+            # trial_burst_time, trial_burst_dur, trial_burst_force = burst_t_d_fs[np.random.randint(len(burst_t_d_fs))]  # burst_combis[block_nr]  # TODO: pick randomly
+            trial_data.update({"trial_burst_dur": [trial_burst_dur], "trial_burst_time": [trial_burst_time], "trial_burst_force": [trial_burst_force]})
+
         timer = core.Clock()
         offset = 0
 
@@ -273,8 +276,10 @@ def main(
                 completed = True
             core.wait(refresh_rate)
 
-        score, timing = scoring(list(np.array(virtual_poss)[:, 1]), err)
-        trial_data.update({'mouse_poss': [mouse_poss], 'virtual_poss': [virtual_poss], 'poss_timestamps': [poss_timestamps], 'score': [score]})
+        time_score, timing = time_scoring(list(np.array(virtual_poss)[:, 1]))
+        # score for straight
+        score = time_score - err
+        trial_data.update({'mouse_poss': [mouse_poss], 'virtual_poss': [virtual_poss], 'poss_timestamps': [poss_timestamps], 'score': [score], 'time_score': [time_score], 'err': [err], 'timing': [timing]})
         # PHASE 3: Ask question
         if phase2 and (dist_type == "burst" or np.random.choice([True, False], p=[question_prob, 1 - question_prob])):
             text_stim_feedback.draw()
@@ -430,7 +435,7 @@ def new_circle(win, pos: tuple, r=10, color=(255, 255, 255)):
     return new_circ
 
 
-def scoring(y_array, err):
+def time_scoring(y_array):
     score = 1000
 
     # score for time
@@ -445,8 +450,6 @@ def scoring(y_array, err):
         timing = "Too fast!"
         score -= (reach_top_idx) / 10
 
-    # score for straight
-    score -= err
     return int(np.round(score)), timing
 
 
