@@ -21,9 +21,9 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 with open('params.json') as json_data:
     PARAMS = json.load(json_data)
 touch_radius, n_proprioceptive_reporting, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y, burst_t_f_ds = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y", "burst_t_f_ds"]]
-# burst_combis = list(product(burst_time, burst_dur, burst_force))
-trial_list = [k for k in burst_t_f_ds for i in range(16)] + [[0, 0, 0] for i in range(int(np.round(16 * len(burst_t_f_ds) * (1 - disturb_prob) / disturb_prob)))]
-n_trials = np.round(len(trial_list) / block_size)  # How many normal blocks are performed? ~16 for each combination
+burst_combis = list(product(burst_time, burst_force))
+trial_list = [k for k in burst_combis for i in range(15)] + [[0, 0] for i in range(int(np.round(15 * len(burst_combis) * (1 - disturb_prob) / disturb_prob)))]
+n_trials = np.round(len(trial_list) / block_size)  # How many normal blocks are performed?
 shuffle(trial_list)
 
 
@@ -36,7 +36,6 @@ def norm2pix(pos, mon):
 mon = monitors.Monitor("monitor_disturbed_pointing")
 p_x, p_y = norm2pix([p_x, p_y], mon)
 proprio_targets = [[-p_x, p_y], [p_x, p_y], [p_x, -p_y], [-p_x, -p_y]]  # Possible targets for proprioceptive reporting
-
 
 orientation_point = norm2pix(orientation_point, mon)
 beginning_point = norm2pix(beginning_point, mon)
@@ -66,7 +65,7 @@ def main(
     PARAMS.update({"debug": debug, "distortion": distortion, "no_propriocept": no_propriocept, "lefthanded": lefthanded})
 
     # create shapes and texts
-    training_line, beginning_point_shape, op_line_x, op_line_y, text_stim_prop_reporting, text_stim_prop_reporting_2, text_stim_block_complete_saving, text_stim_score, text_stim_feedback, text_stim_end, text_stim_entering_phase2, text_stim_begin = stims(win)
+    training_line, beginning_point_shape, op_line_x, op_line_y, text_stim_prop_reporting, text_stim_prop_reporting_2, text_stim_block_complete_saving, text_stim_score, text_stim_feedback, text_stim_feedback_lh, text_stim_end, text_stim_entering_phase2, text_stim_begin = stims(win)
 
     # DATA COLLECTION
     os.makedirs("./data", exist_ok=True)
@@ -115,25 +114,31 @@ def main(
             df = pd.DataFrame()
 
             if (training and not phase2):
-                text_stim_block_complete_saving.text = text_stim_block_complete_saving.text.replace("Saving data... please wait", "Press <space> to perform another block or <a> to continue to training phase two.")
+                if not lefthanded:
+                    text_stim_block_complete_saving.text = text_stim_block_complete_saving.text.replace("Saving data... please wait", "Press <space> to perform another block or <a> to continue to training phase two.")
+                else:
+                    text_stim_block_complete_saving.text = text_stim_block_complete_saving.text.replace("Saving data... please wait", "Press <space> to perform another block or <left> to continue to training phase two.")
             elif (training and phase2):
-                text_stim_block_complete_saving.text = text_stim_block_complete_saving.text.replace("Saving data... please wait", "Press <space> to perform another block or <a> to continue to the main experiment.")
+                if not lefthanded:
+                    text_stim_block_complete_saving.text = text_stim_block_complete_saving.text.replace("Saving data... please wait", "Press <space> to perform another block or <a> to continue to the main experiment.")
+                else:
+                    text_stim_block_complete_saving.text = text_stim_block_complete_saving.text.replace("Saving data... please wait", "Press <space> to perform another block or <left> to continue to the main experiment.")
             else:
                 text_stim_block_complete_saving.text = text_stim_block_complete_saving.text.replace("Saving data... please wait", "Press <space> to continue.")
             text_stim_block_complete_saving.draw()
             win.flip()
 
-            pressed_key = event.waitKeys(keyList=["space", "a", "q"])[0]
+            pressed_key = event.waitKeys(keyList=["space", "a", "left", "q"])[0]
             if pressed_key == "q":
                 win.setMouseVisible(True)
                 win.close()
                 core.quit()
-            elif pressed_key == "a" and not phase2:
+            elif (pressed_key == "a" or pressed_key == "left") and not phase2:
                 phase2 = True
                 text_stim_entering_phase2.draw()
                 win.flip()
                 event.waitKeys(keyList=["space"])
-            elif pressed_key == "a" and phase2:
+            elif (pressed_key == "a" or pressed_key == "left") and phase2:
                 training = False
                 trial_nr = 0
                 # Baseline proprioceptive reporting beginning
@@ -160,14 +165,14 @@ def main(
         # PHASE 1: Preparation - move mouse back
         back_home = False
         try:
-            trial_burst_time, trial_burst_force, trial_burst_dur = trial_list[trial_nr - 1]  # burst_combis[block_nr]
+            trial_burst_time, trial_burst_force = trial_list[trial_nr - 1]  # burst_combis[block_nr]
         except IndexError:
-            trial_burst_time, trial_burst_force, trial_burst_dur = 0, 0, 0
+            trial_burst_time, trial_burst_force = 0, 0
         # mouse.setPos(top_pos)  # should this be changed?
         if (trial_nr % show_score_every_n_trials == 0 or training):
-            text_stim_score.text = (str(timing) + "\nScore: " + str(score)) + "\n\nTime:" + str(trial_burst_time) + "\nDur:" + str(trial_burst_dur) + "\nForce:" + str(trial_burst_force)
+            text_stim_score.text = (str(timing) + "\nScore: " + str(score)) + "\n\nTime:" + str(trial_burst_time) + "\nForce:" + str(trial_burst_force)
         else:
-            text_stim_score.text = "\n\nTime:" + str(trial_burst_time) + "\nDur:" + str(trial_burst_dur) + "\nForce:" + str(trial_burst_force)
+            text_stim_score.text = "\n\nTime:" + str(trial_burst_time) + "\nForce:" + str(trial_burst_force)
 
         # Move mouse back
         timer = core.Clock()
@@ -189,7 +194,7 @@ def main(
             mouse_pos = mouse.getPos()
             if not (back_home):
                 beginning_point_shape.draw()
-                # new_circle(win, mouse_pos, color=(0, 200, 5)).draw()
+                new_circle(win, mouse_pos, color=(0, 200, 5)).draw()  # DEBUG
                 back_movement.append(mouse_pos)
                 back_timestamps.append(timer.getTime())
                 if math.dist(mouse_pos, beginning_point) < touch_radius:
@@ -213,7 +218,7 @@ def main(
 #        else:
 #            dist_type = distortion
 
-        trial_data.update({"trial_burst_dur": [trial_burst_dur], "trial_burst_time": [trial_burst_time], "trial_burst_force": [trial_burst_force]})
+        trial_data.update({"trial_burst_time": [trial_burst_time], "trial_burst_force": [trial_burst_force]})
 
         timer = core.Clock()
         offset = 0
@@ -250,7 +255,7 @@ def main(
 
             # Apply Distortion
             # Es sieht anders aus als es ist ==> wir behalten die Information darüber, wo die Hand actually ist.
-            if (not training and timer.getTime() >= trial_burst_time and timer.getTime() <= trial_burst_time + trial_burst_dur):
+            if (not training and timer.getTime() >= trial_burst_time and timer.getTime() <= trial_burst_time + burst_dur):
                 offset += trial_burst_force
             virtual_mouse_pos = [mouse_pos[0] + offset, mouse_pos[1]]
 
@@ -278,29 +283,33 @@ def main(
         # score for straight
         score = np.round(time_score - err)
         trial_data.update({'mouse_poss': [mouse_poss], 'virtual_poss': [virtual_poss], 'poss_timestamps': [poss_timestamps], 'score': [score], 'time_score': [time_score], 'err': [err], 'timing': [timing]})
-        # PHASE 3: Ask question
-        if phase2 and (burst_force != 0 or np.random.choice([True, False], p=[question_prob, 1 - question_prob])):
-            text_stim_feedback.draw()
+
+        # PHASE 3: Proprioception reporting guess
+        # TODO: Only makes sense when trackpad is absolute, not relative
+        if (not (no_propriocept) and phase2):
+            pr_data = proprioceptive_reporting(1, "", training, win, mouse)
+            trial_data.update(pr_data)
+
+        # PHASE 4: Ask question
+        if phase2 and (trial_burst_force != 0 or np.random.choice([True, False], p=[question_prob, 1 - question_prob])):
+            if not lefthanded:
+                text_stim_feedback.draw()
+            else:
+                text_stim_feedback_lh.draw()
             win.flip()
-            pressed_key = event.waitKeys(keyList=["q", "a", "s", "left", "right"])
+            pressed_key = event.waitKeys(keyList=["q", "a", "d", "left", "right"])
             if pressed_key[0][0] == "q":  # DEBUG
                 win.setMouseVisible(True)
                 win.close()
                 core.quit()
-            elif pressed_key[0][0] == "a" or pressed_key[0][0] == "left":
+            elif pressed_key[0][0] == "a" or pressed_key[0][0] == "l":
                 trial_data.update({"question_asked": [True], "subj_answer": [True]})
-            elif pressed_key[0][0] == "s" or pressed_key[0][0] == "right":
+            elif pressed_key[0][0] == "d" or pressed_key[0][0] == "r":
                 trial_data.update({"question_asked": [True], "subj_answer": [False]})
         else:
             trial_data.update({"question_asked": [False]})  # If no question is asked
             win.flip()
             core.wait(0.2)
-
-        # PHASE 4: Proprioception reporting guess
-        # TODO: Only makes sense when trackpad is absolute, not relative
-        if (not (no_propriocept) and phase2):
-            pr_data = proprioceptive_reporting(1, "", training, win, mouse)
-            trial_data.update(pr_data)
 
         # Add data to df
         if (df.size < 1):
@@ -370,7 +379,7 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
         trajectory = []
         while True:
             trajectory.append(mouse.getPos())
-            if np.sum(mouse.getPressed()) != 0:
+            if np.sum(mouse.getPressed()) != 0:  # TODO: nicht click1 sondern click2
                 if math.dist(mouse.getPos(), target) < touch_radius + 10:
                     hit = True
                 break
@@ -407,7 +416,7 @@ def start_experiment(win, mouse):
         win,
         units="norm",
         text=(
-            "Your task is to move the cursor up in a straight line. Please dont lift your hand during the movement.\n\nFirst you will complete some training trials, and then the main task will beginn.\n\nWhen the cursor is green, please move it back to the beginning. It will then turn white and you can move it in a straight line to the top, cutting through the small cross.\nAfterwards, try to click on the presented white circle again.\n\nPress space to continue."
+            "Your task is to move the cursor up in a straight line. Please dont lift your hand during the movement.\n\nFirst you will complete some training blocks, and then the main task will beginn.\n\nWhen the cursor is hidden, please move it back to the starting point. It will reappear and you can move it in a straight line to the top, cutting through the small cross.\n\nPress space to continue."
         ),
         wrapWidth=0.9,
         height=0.05,
@@ -512,9 +521,14 @@ def stims(win):
                                       alignText="left")
     text_stim_feedback = visual.TextStim(win,
                                          units="norm",
-                                         text=("Press <a> or <left arrow> if you felt like force was applied to your arm.\n\nPress <s> or <right arrow> if you did not."),
+                                         text=("Press <a> if you felt like force was applied to your arm during the upwards movement.\nPress <d> if you did not."),
                                          wrapWidth=0.9,
                                          height=0.05)
+    text_stim_feedback_lh = visual.TextStim(win,
+                                            units="norm",
+                                            text=("Press <left arrow> if you felt like force was applied to your arm during the upwards movement.\nPress <right arrow> if you did not."),
+                                            wrapWidth=0.9,
+                                            height=0.05)
     text_stim_end = visual.TextStim(win,
                                     units="norm",
                                     text=("You have completed the experiment!\nThank you very much for your participation and have a nice day!"),
@@ -522,7 +536,7 @@ def stims(win):
                                     height=0.05)
     text_stim_entering_phase2 = visual.TextStim(win,
                                                 units="norm",
-                                                text=("After moving you may now be asked a question. Please do not move your hand position when anwering.\nAfterwards you have to click on the target while your mouse is hidden.\nPress <space> to continue."),
+                                                text=("After moving you now have to click on a target while your mouse is hidden.\nThen you may be asked a question that you can answer with indicated keys.\nPlease do not move you arms when answering.\n\nPress <space> to continue."),
                                                 wrapWidth=0.9,
                                                 height=0.05)
     text_stim_begin = visual.TextStim(win,
@@ -530,7 +544,7 @@ def stims(win):
                                       text=("Training is over.\nPress <space> to begin with the experiment!"),
                                       wrapWidth=0.9,
                                       height=0.05)
-    return [training_line, beginning_point_shape, op_line_x, op_line_y, text_stim_prop_reporting, text_stim_prop_reporting_2, text_stim_block_complete_saving, text_stim_score, text_stim_feedback, text_stim_end, text_stim_entering_phase2, text_stim_begin]
+    return [training_line, beginning_point_shape, op_line_x, op_line_y, text_stim_prop_reporting, text_stim_prop_reporting_2, text_stim_block_complete_saving, text_stim_score, text_stim_feedback, text_stim_feedback_lh, text_stim_end, text_stim_entering_phase2, text_stim_begin]
 
 @click.command()
 @click.option(
