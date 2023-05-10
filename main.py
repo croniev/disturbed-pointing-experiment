@@ -520,11 +520,15 @@ def stims(win):
                                       height=0.035,
                                       alignText="left")
     text_stim_feedback = visual.TextStim(win,
+                                         colorSpace="rgb255",
+                                         color=(255, 204, 0),
                                          units="norm",
                                          text=("Press <a> if you felt like force was applied to your arm during the upwards movement.\nPress <d> if you did not."),
                                          wrapWidth=0.9,
                                          height=0.05)
     text_stim_feedback_lh = visual.TextStim(win,
+                                            colorSpace="rgb255",
+                                            color=(255, 204, 0),
                                             units="norm",
                                             text=("Press <left arrow> if you felt like force was applied to your arm during the upwards movement.\nPress <right arrow> if you did not."),
                                             wrapWidth=0.9,

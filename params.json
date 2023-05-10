@@ -1,9 +1,9 @@
 {
-    "block_size": [6],
-    "n_proprioceptive_reporting": [4],
+    "block_size": [20],
+    "n_proprioceptive_reporting": [20],
     "burst_time": [[0.09, 0.13]],
-    "burst_dur": [0.17],
-    "burst_force": [[-15, 15, -25, 25]],
+    "burst_dur": [0.14],
+    "burst_force": [[-15, 15, -24, 24]],
     "burst_t_f_ds": [[[0.11, 15, 0.2],[0.11,22,0.2],[0.11,29,0.15],[0.14,12,0.15],[0.14,22,0.15],[0.14,29,0.1],[0.17,22,0.1],[0.17,29,0.06]]],
     "disturb_prob": [0.4],
     "question_prob": [0.4],
