@@ -7,6 +7,7 @@ import click
 def main(
         screen: int = 0,
         user: str = "0",
+        form: int = 0,
 ) -> None:
 
     win = visual.Window(
@@ -17,20 +18,25 @@ def main(
         fullscr=True)
 
     os.makedirs("./data", exist_ok=True)
-    if os.path.isfile(str("data/" + user + "_1_questionnaire.csv")):
-        os.remove(str("data/" + user + "_1_questionnaire.csv"))
+    if os.path.isfile(str("data/" + user + "_" + str(form) + "_questionnaire.csv")):
+        os.remove(str("data/" + user + "_" + str(form) + "_questionnaire.csv"))
 
     # Create Form
-    form = visual.Form(win, items="1_questionnaire.csv")
-    form.setAutoDraw(True)
+    try:
+        formEl = visual.Form(win, items=str(form) + "_questionnaire.csv")
+        formEl.setAutoDraw(True)
+    except ValueError:
+        print("ERROR: Please provide form argument! (i.e. --form 1 or 2)")
+        win.close()
+        return
 
     # Wait until complete
     while True:
         win.flip()
         key = event.getKeys()
-        if len(key) != 0 and key[0] == 'p' and form.complete:
-            df = pd.DataFrame(form.getData())
-            df[["itemText", "response"]].to_csv("data/" + user + "_1_questionnaire.csv")
+        if len(key) != 0 and key[0] == 'p' and formEl.complete:
+            df = pd.DataFrame(formEl.getData())
+            df[["itemText", "response"]].to_csv("data/" + user + "_" + str(form) + "_questionnaire.csv")
             break
 
     win.close()
@@ -44,9 +50,15 @@ def main(
     show_default=True,
     help="ID of the participant",
 )
-def cli(user: str):
+@click.option(
+    "--form",
+    type=int,
+    help="Number of form to be performed.",
+)
+def cli(user: str, form: int):
     main(
         user=user,
+        form=form,
     )
 
 
