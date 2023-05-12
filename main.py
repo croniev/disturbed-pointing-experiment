@@ -297,15 +297,16 @@ def main(
             else:
                 text_stim_feedback_lh.draw()
             win.flip()
-            pressed_key = event.waitKeys(keyList=["q", "a", "d", "left", "right"])
-            if pressed_key[0][0] == "q":  # DEBUG
+            timer = core.Clock()
+            pressed_key = event.waitKeys(keyList=["q", "a", "d", "left", "right"], timeStamped=timer)
+            if pressed_key[0][0][0] == "q":  # DEBUG
                 win.setMouseVisible(True)
                 win.close()
                 core.quit()
-            elif pressed_key[0][0] == "a" or pressed_key[0][0] == "l":
-                trial_data.update({"question_asked": [True], "subj_answer": [True]})
-            elif pressed_key[0][0] == "d" or pressed_key[0][0] == "r":
-                trial_data.update({"question_asked": [True], "subj_answer": [False]})
+            elif pressed_key[0][0][0] == "a" or pressed_key[0][0][0] == "l":
+                trial_data.update({"question_asked": [True], "subj_answer": [True], "answer_time": [pressed_key[0][0][1]]})
+            elif pressed_key[0][0][0] == "d" or pressed_key[0][0][0] == "r":
+                trial_data.update({"question_asked": [True], "subj_answer": [False], "answer_time": [pressed_key[0][0][1]]})
         else:
             trial_data.update({"question_asked": [False]})  # If no question is asked
             win.flip()
@@ -377,13 +378,14 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
         hit = False
         single_data = {"pr_mouse_beginn": [mouse.getPos()]}
         trajectory = []
+        timer = core.Clock()
         while True:
             trajectory.append(mouse.getPos())
             if mouse.getPressed()[1] != 0:
                 if math.dist(mouse.getPos(), target) < touch_radius + 10:
                     hit = True
                 break
-        single_data.update({"pr_mouse_pos": [mouse.getPos()], "pr_target": [target], "pr_hit": [hit], "pr_trajectory": [trajectory]})
+        single_data.update({"pr_mouse_pos": [mouse.getPos()], "pr_target": [target], "pr_hit": [hit], "pr_trajectory": [trajectory], "pr_time": [timer.getTime()]})
         if show_feedback:
             if hit:
                 new_circle(win, target, r=touch_radius, color=(0, 240, 0)).draw()
