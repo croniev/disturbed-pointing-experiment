@@ -4,6 +4,7 @@ Please do not clone if you are planning on participating in the experiment!!
 
 ## Usage
 - Conda Environment for Handeln course should work. If not install from yml file.
+- For the questionnaires run `python questionnaire.py --form <1 or 2>`
 - before starting run `python create_monitor_file.py --width_px <px> --height_px <px>` with the specs of the monitor you are using.  
 - run main.py
 	- debug: disable fullscreen
