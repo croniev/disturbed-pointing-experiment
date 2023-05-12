@@ -299,14 +299,14 @@ def main(
             win.flip()
             timer = core.Clock()
             pressed_key = event.waitKeys(keyList=["q", "a", "d", "left", "right"], timeStamped=timer)
-            if pressed_key[0][0][0] == "q":  # DEBUG
+            if pressed_key[0][0] == "q":  # DEBUG
                 win.setMouseVisible(True)
                 win.close()
                 core.quit()
-            elif pressed_key[0][0][0] == "a" or pressed_key[0][0][0] == "l":
-                trial_data.update({"question_asked": [True], "subj_answer": [True], "answer_time": [pressed_key[0][0][1]]})
-            elif pressed_key[0][0][0] == "d" or pressed_key[0][0][0] == "r":
-                trial_data.update({"question_asked": [True], "subj_answer": [False], "answer_time": [pressed_key[0][0][1]]})
+            elif pressed_key[0][0] == "a" or pressed_key[0][0] == "l":
+                trial_data.update({"question_asked": [True], "subj_answer": [True], "answer_time": [pressed_key[0][1]]})
+            elif pressed_key[0][0] == "d" or pressed_key[0][0] == "r":
+                trial_data.update({"question_asked": [True], "subj_answer": [False], "answer_time": [pressed_key[0][1]]})
         else:
             trial_data.update({"question_asked": [False]})  # If no question is asked
             win.flip()

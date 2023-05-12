@@ -30,7 +30,7 @@ def main(
         win.close()
         return
 
-    # Wait until complete
+    # Wait until complete, exit with 'p'
     while True:
         win.flip()
         key = event.getKeys()
