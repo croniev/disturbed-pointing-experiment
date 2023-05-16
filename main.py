@@ -153,7 +153,7 @@ def main(
             if (block_nr >= n_trials):
                 break
 
-        if (block_nr == 0 and no_training) and not no_propriocept:
+        if (trial_nr == 0 and no_training) and not no_propriocept:
             text_stim_prop_reporting.draw()
             win.flip()
             event.waitKeys(keyList=["space"])
@@ -179,9 +179,9 @@ def main(
             trial_burst_time, trial_burst_force = 0, 0
         # mouse.setPos(top_pos)  # should this be changed?
         if (trial_nr % show_score_every_n_trials == 0 or training):
-            text_stim_score.text = (str(timing) + "\nScore: " + str(score)) + "\n\nTime:" + str(trial_burst_time) + "\nForce:" + str(trial_burst_force)
+            text_stim_score.text = (str(timing) + "\nScore: " + str(score)) #TODO + "\n\nTime:" + str(trial_burst_time) + "\nForce:" + str(trial_burst_force)
         else:
-            text_stim_score.text = "\n\nTime:" + str(trial_burst_time) + "\nForce:" + str(trial_burst_force)
+            text_stim_score.text = ""#TODO "\n\nTime:" + str(trial_burst_time) + "\nForce:" + str(trial_burst_force)
 
         # Move mouse back
         timer = core.Clock()
@@ -344,7 +344,6 @@ def main(
 
 
 def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
-    # TODO: Add a text stim!
     # prop_data = pd.DataFrame(columns=["pr_mouse_beginn", "pr_mouse_pos", "pr_target", "pr_hit", "pr_trajectory"])
     for i in range(n):
         single_data = {}
