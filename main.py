@@ -138,7 +138,7 @@ def main(
                 text_stim_entering_phase2.draw()
                 win.flip()
                 event.waitKeys(keyList=["space"])
-            elif (pressed_key == "a" or pressed_key == "left") and phase2:
+            elif ((pressed_key == "a" or pressed_key == "left") and phase2):
                 training = False
                 trial_nr = 0
                 # Baseline proprioceptive reporting beginning
@@ -152,6 +152,15 @@ def main(
                     event.waitKeys(keyList=["space"])
             if (block_nr >= n_trials):
                 break
+
+        if (block_nr == 0 and no_training) and not no_propriocept:
+            text_stim_prop_reporting.draw()
+            win.flip()
+            event.waitKeys(keyList=["space"])
+            proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), True, win, mouse)
+            text_stim_begin.draw()
+            win.flip()
+            event.waitKeys(keyList=["space"])
 
         trial_nr += 1
         trial_data = {"trial_nr": [trial_nr], "training": [training], "block_nr": [block_nr]}
@@ -542,7 +551,7 @@ def stims(win):
                                     height=0.05)
     text_stim_entering_phase2 = visual.TextStim(win,
                                                 units="norm",
-                                                text=("After moving you now have to middle-click on a target while your mouse is hidden.\nThen you may be asked a question that you can answer with indicated keys.\nPlease do not move you arms and hands when answering.\n\nPress <space> to continue."),
+                                                text=("After moving, stay where you are. \nThen middle-click on the target (your mouse is hidden).\nAfterwards, you may be asked a question that you can answer with indicated keys.\n\nPress <space> to continue."),
                                                 wrapWidth=0.9,
                                                 height=0.05)
     text_stim_begin = visual.TextStim(win,

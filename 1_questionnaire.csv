@@ -1,12 +1,12 @@
 itemText,type,options,layout
 "Please indicate your preferences in the use of hands in the following activities by selecting the appropriate option. Where the preference is so strong that you would never try to use the other hand unless absolutely forced to, pick ++. If in any case you are really indifferent pick the middle. Some of the activities require both hands. In these cases the part of the task, or object, for which hand preference is wanted is indicated in brackets.",heading,"",horiz
-"Writing",choice,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
-"Drawing",choice,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
-"Throwing",choice,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
-"Scissors",choice,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
-"Toothbrush",choice,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
-"Knife (without fork)",choice,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
-"Spoon",choice,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
-"Broom (upper hand)",choice,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
-"Striking Match (match)",choice,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
-"Opening box (lid)",choice,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
+"Writing",rating,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
+"Drawing",rating,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
+"Throwing",rating,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
+"Scissors",rating,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
+"Toothbrush",rating,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
+"Knife (without fork)",rating,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
+"Spoon",rating,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
+"Broom (upper hand)",rating,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
+"Striking Match (match)",rating,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
+"Opening box (lid)",rating,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz

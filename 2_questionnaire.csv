@@ -1,1 +1,3 @@
 itemText,type,options,layout
+"servus",heading,"",horiz
+"Writing",choice,"Left\n++, Left\n+, Left & Right\n+   +, Right\n+, Right\n++",horiz
