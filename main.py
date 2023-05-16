@@ -385,7 +385,7 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
                 if math.dist(mouse.getPos(), target) < touch_radius + 10:
                     hit = True
                 break
-        single_data.update({"pr_mouse_pos": [mouse.getPos()], "pr_target": [target], "pr_hit": [hit], "pr_trajectory": [trajectory], "pr_time": [timer.getTime()]})
+        single_data.update({"pr_mouse_pos": [mouse.getPos()], "pr_target": [target], "pr_distance": [math.dist(mouse.getPos(), target)], "pr_hit": [hit], "pr_trajectory": [trajectory], "pr_time": [timer.getTime()]})
         if show_feedback:
             if hit:
                 new_circle(win, target, r=touch_radius, color=(0, 240, 0)).draw()
@@ -395,7 +395,7 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
             win.flip()
         else:
             win.flip()
-        core.wait(0.45)
+        core.wait(0.3)
 
         if (filename == ""):
             return single_data
@@ -503,12 +503,12 @@ def stims(win):
     # TEXTS
     text_stim_prop_reporting = visual.TextStim(win,
                                                units="norm",
-                                               text=("Before the experiment starts we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to click on the white circle.\n\nPress <space> to continue."),
+                                               text=("Before the experiment starts we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to middle-click on the white circle.\n\nPress <space> to continue."),
                                                wrapWidth=0.9,
                                                height=0.05)
     text_stim_prop_reporting_2 = visual.TextStim(win,
                                                  units="norm",
-                                                 text=("Once again we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to click on the white circle.\n\nPress <space> to continue."),
+                                                 text=("Once again we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to middle-click on the white circle.\n\nPress <space> to continue."),
                                                  wrapWidth=0.9,
                                                  height=0.05)
     text_stim_block_complete_saving = visual.TextStim(win,
@@ -525,14 +525,14 @@ def stims(win):
                                          colorSpace="rgb255",
                                          color=(255, 204, 0),
                                          units="norm",
-                                         text=("Press <a> if you felt like force was applied to your arm during the upwards movement.\nPress <d> if you did not."),
+                                         text=("For the last movement:\n\nPress <a> if you felt like force was applied to your arm during the upwards movement.\nPress <d> if you did not."),
                                          wrapWidth=0.9,
                                          height=0.05)
     text_stim_feedback_lh = visual.TextStim(win,
                                             colorSpace="rgb255",
                                             color=(255, 204, 0),
                                             units="norm",
-                                            text=("Press <left arrow> if you felt like force was applied to your arm during the upwards movement.\nPress <right arrow> if you did not."),
+                                            text=("For the last movement:\n\nPress <left arrow> if you felt like force was applied to your arm during the upwards movement.\nPress <right arrow> if you did not."),
                                             wrapWidth=0.9,
                                             height=0.05)
     text_stim_end = visual.TextStim(win,
@@ -542,7 +542,7 @@ def stims(win):
                                     height=0.05)
     text_stim_entering_phase2 = visual.TextStim(win,
                                                 units="norm",
-                                                text=("After moving you now have to click on a target while your mouse is hidden.\nThen you may be asked a question that you can answer with indicated keys.\nPlease do not move you arms when answering.\n\nPress <space> to continue."),
+                                                text=("After moving you now have to middle-click on a target while your mouse is hidden.\nThen you may be asked a question that you can answer with indicated keys.\nPlease do not move you arms and hands when answering.\n\nPress <space> to continue."),
                                                 wrapWidth=0.9,
                                                 height=0.05)
     text_stim_begin = visual.TextStim(win,
