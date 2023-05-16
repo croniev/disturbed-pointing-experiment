@@ -146,7 +146,7 @@ def main(
                     text_stim_prop_reporting.draw()
                     win.flip()
                     event.waitKeys(keyList=["space"])
-                    proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), True, win, mouse)
+                    proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), False, win, mouse)
                     text_stim_begin.draw()
                     win.flip()
                     event.waitKeys(keyList=["space"])
@@ -157,7 +157,7 @@ def main(
             text_stim_prop_reporting.draw()
             win.flip()
             event.waitKeys(keyList=["space"])
-            proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), True, win, mouse)
+            proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), False, win, mouse)
             text_stim_begin.draw()
             win.flip()
             event.waitKeys(keyList=["space"])
@@ -332,7 +332,7 @@ def main(
         text_stim_prop_reporting_2.draw()
         win.flip()
         event.waitKeys(keyList=["space"])
-        proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_ending.csv"), True, win, mouse)
+        proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_ending.csv"), False, win, mouse)
 
     # END SESSION
     text_stim_end.draw()
