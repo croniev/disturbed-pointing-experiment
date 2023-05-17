@@ -1,6 +1,7 @@
 import os
 import threading
-import platform, sys
+import platform
+import sys
 import numpy as np
 import pandas as pd
 import click
@@ -20,7 +21,7 @@ size = 250
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-sys.path.append(f"PLUX-API-Python3/Win{platform.architecture()[0][:2]}_{''.join(platform.python_version().split('.')[:2])}") # not sure for what. from bioPLUX example
+sys.path.append(f"PLUX-API-Python3/Win{platform.architecture()[0][:2]}_{''.join(platform.python_version().split('.')[:2])}")  # not sure for what. from bioPLUX example
 
 # Parameters
 with open('params.json') as json_data:
@@ -112,12 +113,11 @@ def main(
             text_stim_block_complete_saving.draw()
             win.flip()
 
-            try:
-                tmp = pd.read_csv(str("data/" + user + "_data.csv"))
-                tmp = pd.concat([tmp, df], ignore_index=True)
-            except FileNotFoundError:
-                tmp = df
-            tmp.to_csv(str("data/" + user + "_data.csv"), index=False)
+            # save data
+            if os.path.isfile("data/" + user + "_data.csv"):
+                df.to_csv(str("data/" + user + "_data.csv"), mode='a', ignore_index=True, header=False)
+            else:
+                df.to_csv(str("data/" + user + "_data.csv"), ignore_index=True)
             df = pd.DataFrame()
 
             if (training and not phase2):
@@ -184,9 +184,9 @@ def main(
             trial_burst_time, trial_burst_force = 0, 0
         # mouse.setPos(top_pos)  # should this be changed?
         if (trial_nr % show_score_every_n_trials == 0 or training):
-            text_stim_score.text = (str(timing) + "\nScore: " + str(score)) #+ "\n\nTime:" + str(trial_burst_time) + "\nForce:" + str(trial_burst_force)
+            text_stim_score.text = (str(timing) + "\nScore: " + str(score))  # + "\n\nTime:" + str(trial_burst_time) + "\nForce:" + str(trial_burst_force)
         else:
-            text_stim_score.text = ""#"\n\nTime:" + str(trial_burst_time) + "\nForce:" + str(trial_burst_force)
+            text_stim_score.text = ""  # "\n\nTime:" + str(trial_burst_time) + "\nForce:" + str(trial_burst_force)
 
         # EEG measurement
         eeg_data_back = []
