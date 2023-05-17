@@ -21,7 +21,12 @@ size = 250
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-sys.path.append(f"PLUX-API-Python3/Win{platform.architecture()[0][:2]}_{''.join(platform.python_version().split('.')[:2])}")  # not sure for what. from bioPLUX example
+osDic = {
+    "Darwin": f"MacOS/Intel{''.join(platform.python_version().split('.')[:2])}",
+    "Linux": "Linux64",
+    "Windows": f"Win{platform.architecture()[0][:2]}_{''.join(platform.python_version().split('.')[:2])}",
+}
+sys.path.append(f"PLUX-API-Python3/{osDic[platform.system()]}")
 
 # Parameters
 with open('params.json') as json_data:
@@ -115,9 +120,9 @@ def main(
 
             # save data
             if os.path.isfile("data/" + user + "_data.csv"):
-                df.to_csv(str("data/" + user + "_data.csv"), mode='a', ignore_index=True, header=False)
+                df.to_csv(str("data/" + user + "_data.csv"), mode='a', index=False, header=False)
             else:
-                df.to_csv(str("data/" + user + "_data.csv"), ignore_index=True)
+                df.to_csv(str("data/" + user + "_data.csv"), index=False)
             df = pd.DataFrame()
 
             if (training and not phase2):
@@ -189,9 +194,9 @@ def main(
             text_stim_score.text = ""  # "\n\nTime:" + str(trial_burst_time) + "\nForce:" + str(trial_burst_force)
 
         # EEG measurement
-        eeg_data_back = []
+        eeg_data_back = [[]]
         make_thread(eeg_data_back)  # BIO
-        eeg_data_start = []
+        eeg_data_start = [[]]
 
         # Move mouse back
         started = False
@@ -242,7 +247,7 @@ def main(
         offset = 0
 
         # EEG measurement
-        eeg_data_trial = []
+        eeg_data_trial = [[]]
         make_thread(eeg_data_trial)  # BIO
 
         # PHASE 2: Pointing Task
@@ -378,7 +383,7 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
         core.wait(0.2)
 
         # EEG measurement
-        eeg_data_pr = []
+        eeg_data_pr = [[]]
         make_thread(eeg_data_pr)  # BIO
 
         target = proprio_targets[np.random.randint(len(proprio_targets))]
