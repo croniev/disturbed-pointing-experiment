@@ -16,6 +16,7 @@ dependencies:
   - pytest
   - rope
   - h5py
+  - seaborn
   - pip:
       - psychtoolbox
       - pygame
@@ -24,3 +25,4 @@ dependencies:
       - SoundFile; platform_system == "Windows"
       - websocket_client
       - control
+      - plux
