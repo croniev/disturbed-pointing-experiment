@@ -1,34 +1,23 @@
 from psychopy import core
 import threading
-import os
 import bioplux as bp
-import platform
-import sys
 
-
-osDic = {
-    "Darwin": f"MacOS/Intel{''.join(platform.python_version().split('.')[:2])}",
-    "Linux": "Linux64",
-    "Windows": f"Win{platform.architecture()[0][:2]}_{''.join(platform.python_version().split('.')[:2])}",
-}
-sys.path.append(f"PLUX-API-Python3/{osDic[platform.system()]}")
-sys.path.append("D:\\Bachelor_ThesisProjects\\Levin Bachelor\\disturbed-pointing-experiment")
 address = "BTH00:07:80:89:7F:F0"
 
 
 def make_thread(data_obj):
+    device = bp.MyBioplux(address)
     eeg_thread = threading.Thread(
         target=bp.exampleAcquisition,
-        args=(address,  # TODO: Parameter einfügen
-              data_obj))
+        args=(device))
     eeg_thread.start()
     print("Thread started")
-    return eeg_thread
+    return device
 
 
 eeg_data_back = [[]]
-make_thread(eeg_data_back)
+device_back = make_thread(eeg_data_back)
 print("Collecting...")
 core.wait(3)
-open("tmp", "a").close()
+device_back.interrupt()
 print(eeg_data_back)

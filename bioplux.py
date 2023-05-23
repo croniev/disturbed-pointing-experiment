@@ -1,24 +1,21 @@
 import plux
-import os
 
 
 class MyBioplux(plux.SignalsDev):
-    def __init__(self, address): #, data_obj):
+    def __init__(self, address):
         plux.MemoryDev.__init__(address)
-        # self.data_obj = data_obj
+        self.saved_data = []
 
     def onRawFrame(self, nSeq, data):
-        print(data)
-        self.data_obj.append(data)  # TODO: was genau hier?
-
-        if os.path.isfile("tmp"):  # If file is present stop recording
-            os.remove("tmp")
-            return True
+        self.saved_data.append(float(*data))  # TODO: was genau hier?
         return False
 
+    def onInterrupt(self, data_obj):
+        data_obj.append(self.saved_data)
+        return True
 
-def exampleAcquisition(address, data_obj):  # time acquisition for each frequency
-    device = MyBioplux(address) #, data_obj)
+
+def exampleAcquisition(device):
     device.start(1000, 0x01, 16)
     device.loop()  # calls device.onRawFrame until it returns True
     device.stop()

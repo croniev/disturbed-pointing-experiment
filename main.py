@@ -1,7 +1,5 @@
 import os
 import threading
-import platform
-import sys
 import numpy as np
 import pandas as pd
 import click
@@ -20,13 +18,6 @@ prefs.general["gammaErrorPolicy"] = "warn"
 size = 250
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
-
-osDic = {
-    "Darwin": f"MacOS/Intel{''.join(platform.python_version().split('.')[:2])}",
-    "Linux": "Linux64",
-    "Windows": f"Win{platform.architecture()[0][:2]}_{''.join(platform.python_version().split('.')[:2])}",
-}
-sys.path.append(f"PLUX-API-Python3/{osDic[platform.system()]}")
 
 # Parameters
 with open('params.json') as json_data:
@@ -86,8 +77,6 @@ def main(
         os.remove(str("data/" + user + "_beginning.csv"))
     if os.path.isfile(str("data/" + user + "_ending.csv")):
         os.remove(str("data/" + user + "_ending.csv"))
-    if os.path.isfile("tmp"):
-        os.remove("tmp")
     df = pd.DataFrame()
 
     # START EXPERIMENT
@@ -195,7 +184,7 @@ def main(
 
         # EEG measurement
         eeg_data_back = [[]]
-        make_thread(eeg_data_back)  # BIO
+        # device_back = make_thread(eeg_data_back)  # bioPlux
         eeg_data_start = [[]]
 
         # Move mouse back
@@ -225,9 +214,8 @@ def main(
                 back_timestamps.append(timer.getTime())
                 if math.dist(mouse_pos, beginning_point) < touch_radius:
                     back_home = True
-                    open("tmp", 'a').close()  # file presence terminates EEG thread
-                    print(eeg_data_back)
-                    make_thread(eeg_data_start)  # BIO
+                    #device_back.interrupt()
+                    #device_start = make_thread(eeg_data_start)  # bioPlux
                     timer = core.Clock()
             else:  # PHASE 2: Move upwards
                 op_line_x.draw()
@@ -237,7 +225,7 @@ def main(
                 starting_timestamps.append(timer.getTime())
                 if math.dist(mouse_pos, orientation_point) < 25:  # touch_radius:
                     started = True
-                    open("tmp", 'a').close()  # file presence terminates EEG thread
+                    #device_start.interrupt()
             win.flip()
             core.wait(refresh_rate)
         trial_data.update({"back_movement": [back_movement], "back_timestamps": [back_timestamps], "starting_movement": [starting_movement], "starting_timestamps": [starting_timestamps]})
@@ -249,7 +237,7 @@ def main(
 
         # EEG measurement
         eeg_data_trial = [[]]
-        make_thread(eeg_data_trial)  # BIO
+        # device_trial = make_thread(eeg_data_trial)  # bioPlux
 
         # PHASE 2: Pointing Task
         completed = False
@@ -288,7 +276,7 @@ def main(
             # Breakout condition
             if timer.getTime() >= time_limit:
                 completed = True
-                open("tmp", 'a').close()  # file presence terminates EEG thread
+                #device_trial.interrupt()
             core.wait(refresh_rate)
 
         time_score, timing = time_scoring(list(np.array(virtual_poss)[:, 1]))
@@ -385,7 +373,7 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
 
         # EEG measurement
         eeg_data_pr = [[]]
-        make_thread(eeg_data_pr)  # BIO
+        # device_pr = make_thread(eeg_data_pr)  # bioPlux
 
         target = proprio_targets[np.random.randint(len(proprio_targets))]
         target_shape = new_circle(win, target, r=touch_radius)
@@ -400,7 +388,7 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
             if mouse.getPressed()[1] != 0:
                 if math.dist(mouse.getPos(), target) < touch_radius + 10:
                     hit = True
-                open("tmp", 'a').close()  # file presence terminates EEG thread
+                #device_pr.interrupt()
                 break
         single_data.update({"pr_mouse_pos": [mouse.getPos()], "pr_target": [target], "pr_distance": [math.dist(mouse.getPos(), target)], "pr_hit": [hit], "pr_trajectory": [trajectory], "pr_time": [timer.getTime()]})
         single_data.update({"eeg_data_pr": eeg_data_pr})
