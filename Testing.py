@@ -12,6 +12,7 @@ osDic = {
     "Windows": f"Win{platform.architecture()[0][:2]}_{''.join(platform.python_version().split('.')[:2])}",
 }
 sys.path.append(f"PLUX-API-Python3/{osDic[platform.system()]}")
+sys.path.append("D:\\Bachelor_ThesisProjects\\Levin Bachelor\\disturbed-pointing-experiment")
 address = "BTH00:07:80:89:7F:F0"
 
 
