@@ -226,6 +226,7 @@ def main(
                 if math.dist(mouse_pos, beginning_point) < touch_radius:
                     back_home = True
                     open("tmp", 'a').close()  # file presence terminates EEG thread
+                    print(eeg_data_back)
                     make_thread(eeg_data_start)  # BIO
                     timer = core.Clock()
             else:  # PHASE 2: Move upwards
