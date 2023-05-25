@@ -21,6 +21,7 @@ dependencies:
       - psychtoolbox
       - pygame
       - pyo
+      - pyfirmata
       - pyparallel; platform_system != "Windows"
       - SoundFile; platform_system == "Windows"
       - websocket_client
