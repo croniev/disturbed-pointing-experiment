@@ -24,7 +24,7 @@ class MyBioplux(plux.SignalsDev):
         global eeg_data
         if self.bucket:
             eeg_data[self.bucket][0].append(float(*data))
-            eeg_data[str(self.bucket + "_timestamps")][0].append(self.timer.getTime())
+            eeg_data[str(self.bucket + "_timestamps")][0].append(round(self.timer.getTime()))
         return False
 
     def collect(self, bucket, timer):
@@ -79,6 +79,12 @@ def main(
     user: str = "0",
     lefthanded: bool = False,
 ) -> None:
+    print("Loading BioPLUX device...")
+    eeg_device = MyBioplux("BTH00:07:80:89:7F:F0")
+    eeg_device.start(1000, 0x01, 16)
+    threading.Thread(target=eeg_device.loop).start()
+    print("Ready!")
+
     # Open a PsychoPy window, show the image, collect a keypress, close.
     win = visual.Window(
         # (500, 500),  # arbitrary if we're doing fullscreen
@@ -103,10 +109,6 @@ def main(
     if os.path.isfile(str("data/" + user + "_ending.csv")):
         os.remove(str("data/" + user + "_ending.csv"))
     df = pd.DataFrame()
-
-    eeg_device = MyBioplux("BTH00:07:80:89:7F:F0")
-    eeg_device.start(1000, 0x01, 16)
-    threading.Thread(target=eeg_device.loop).start()
 
     # START EXPERIMENT
     mouse = Mouse(visible=False, win=win)
@@ -162,6 +164,9 @@ def main(
             if pressed_key == "q":
                 win.setMouseVisible(True)
                 win.close()
+                eeg_device.interrupt()
+                eeg_device.stop()
+                eeg_device.close()
                 core.quit()
             elif (pressed_key == "a" or pressed_key == "left") and not phase2:
                 phase2 = True
@@ -187,7 +192,7 @@ def main(
             text_stim_prop_reporting.draw()
             win.flip()
             event.waitKeys(keyList=["space"])
-            proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), False, win, mouse)
+            proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), False, win, mouse, eeg_device)
             text_stim_begin.draw()
             win.flip()
             event.waitKeys(keyList=["space"])
@@ -198,6 +203,9 @@ def main(
         if len(event.getKeys(keyList=['q'])) > 0:
             win.setMouseVisible(True)
             win.close()
+            eeg_device.interrupt()
+            eeg_device.stop()
+            eeg_device.close()
             core.quit()
 
         try:
@@ -227,6 +235,9 @@ def main(
             if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
                 win.setMouseVisible(True)
                 win.close()
+                eeg_device.interrupt()
+                eeg_device.stop()
+                eeg_device.close()
                 core.quit()
 
             text_stim_score.draw()
@@ -239,7 +250,7 @@ def main(
                 beginning_point_shape.draw()
                 # new_circle(win, mouse_pos, color=(0, 200, 5)).draw()
                 back_movement.append(mouse_pos)
-                back_timestamps.append(timer.getTime())
+                back_timestamps.append(round(timer.getTime(), 6))
                 if math.dist(mouse_pos, beginning_point) < touch_radius:
                     back_down = True
                     timer = core.Clock()
@@ -249,7 +260,7 @@ def main(
                 op_line_y.draw()
                 new_circle(win, mouse_pos).draw()
                 starting_movement.append(mouse_pos)
-                starting_timestamps.append(timer.getTime())
+                starting_timestamps.append(round(timer.getTime(), 6))
                 if math.dist(mouse_pos, orientation_point) < 25:  # touch_radius:
                     timer = core.Clock()
                     eeg_device.collect("eeg_forward", timer)
@@ -269,6 +280,9 @@ def main(
             if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
                 win.setMouseVisible(True)
                 win.close()
+                eeg_device.interrupt()
+                eeg_device.stop()
+                eeg_device.close()
                 core.quit()
             mouse_pos = mouse.getPos()
 
@@ -281,7 +295,7 @@ def main(
             # Save movements with times
             forward_movement.append(mouse_pos)
             virtual_poss.append(virtual_mouse_pos)
-            forward_timestamps.append(timer.getTime())
+            forward_timestamps.append(round(timer.getTime(), 6))
 
             # Draw Stuff
             if training:
@@ -323,6 +337,9 @@ def main(
             if pressed_key[0][0] == "q":  # DEBUG
                 win.setMouseVisible(True)
                 win.close()
+                eeg_device.interrupt()
+                eeg_device.stop()
+                eeg_device.close()
                 core.quit()
             elif pressed_key[0][0] == "a" or pressed_key[0][0] == "l":
                 trial_data.update({"question_asked": [True], "subj_answer": [True], "answer_time": [pressed_key[0][1]]})
@@ -383,11 +400,15 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eeg_device)
                 if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
                     win.setMouseVisible(True)
                     win.close()
+                    eeg_device.interrupt()
+                    eeg_device.stop()
+                    eeg_device.close()
                     core.quit()
 
                 bp_line_x.draw()
                 bp_line_y.draw()
-                new_circle(win, mouse.getPos(), color=(0, 200, 5)).draw()
+                if math.dist(mouse.getPos(), beginning_point) < 5 * touch_radius:
+                    new_circle(win, mouse.getPos(), color=(0, 200, 5)).draw()
                 if math.dist(mouse.getPos(), beginning_point) < touch_radius:
                     ready = True
                 win.flip()
@@ -408,7 +429,7 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eeg_device)
         eeg_device.collect("eeg_pr", timer)
         while True:
             pr_movement.append(mouse.getPos())
-            pr_timestamps.append(timer.getTime())
+            pr_timestamps.append(round(timer.getTime(), 6))
             if mouse.getPressed()[1] != 0:
                 if math.dist(mouse.getPos(), target) < touch_radius + 10:
                     hit = True
@@ -438,7 +459,7 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eeg_device)
 
     visual.TextStim(win,
                     units="norm",
-                    text=("Well Done!\n\nSaving data...\nPlease wait a moment"),
+                    text=("Well Done!\n\nSaving data... please wait"),
                     wrapWidth=0.9,
                     height=0.05).draw()
     win.flip()
@@ -450,7 +471,7 @@ def start_experiment(win, mouse):
         win,
         units="norm",
         text=(
-            "Your task is to move the cursor up in a straight line. Please dont lift your hand during the movement.\n\nFirst you will complete some training blocks, and then the main task will beginn.\n\nWhen the cursor is hidden, please move it back to the starting point. It will reappear and you can move it in a straight line to the top, cutting through the small cross.\n\nPress space to continue."
+            "Your task is to move the cursor up in a straight line. Please dont lift your hand during the movement.\n\nFirst you will complete some training blocks, and then the main task will beginn.\n\nWhen the cursor is hidden, please move it back to the starting point. It will reappear and you can move it in a straight line to the top, cutting through the small cross.\n\nPress <space> to continue."
         ),
         wrapWidth=0.9,
         height=0.05,
