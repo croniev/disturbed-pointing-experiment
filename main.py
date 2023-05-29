@@ -23,20 +23,20 @@ class MyBioplux(plux.SignalsDev):
     def onRawFrame(self, nSeq, data):
         global eeg_data
         if self.bucket:
-            eeg_data[self.bucket].append(float(*data))
-            eeg_data[str(self.bucket + "_timestamps")].append(self.timer.getTime())
+            eeg_data[self.bucket][0].append(float(*data))
+            eeg_data[str(self.bucket + "_timestamps")][0].append(self.timer.getTime())
         return False
 
     def collect(self, bucket, timer):
         global eeg_data
         self.bucket = bucket
         if bucket:
-            eeg_data[bucket] = []
-            eeg_data[str(bucket + "_timestamps")] = []
+            eeg_data[bucket] = [[]]
+            eeg_data[str(bucket + "_timestamps")] = [[]]
         self.timer = timer
 
 
-eeg_data = {"eeg_back": [], "eeg_start": [], "eeg_forward": [], "eeg_pr": [], "eeg_back_timestamps": [], "eeg_start_timestamps": [], "eeg_forward_timestamps": [], "eeg_pr_timestamps": []}
+eeg_data = {"eeg_back": [[]], "eeg_start": [[]], "eeg_forward": [[]], "eeg_pr": [[]], "eeg_back_timestamps": [[]], "eeg_start_timestamps": [[]], "eeg_forward_timestamps": [[]], "eeg_pr_timestamps": [[]]}
 
 # to avoid bug on windows (https://www.psychopy.org/troubleshooting.html#errors-with-getting-setting-the-gamma-ramp)
 prefs.general["gammaErrorPolicy"] = "warn"
