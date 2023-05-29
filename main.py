@@ -24,7 +24,7 @@ class MyBioplux(plux.SignalsDev):
         global eeg_data
         if self.bucket:
             eeg_data[self.bucket][0].append(float(*data))
-            eeg_data[str(self.bucket + "_timestamps")][0].append(round(self.timer.getTime()))
+            eeg_data[str(self.bucket + "_timestamps")][0].append(round(self.timer.getTime(), 6))
         return False
 
     def collect(self, bucket, timer):
@@ -82,7 +82,9 @@ def main(
     print("Loading BioPLUX device...")
     eeg_device = MyBioplux("BTH00:07:80:89:7F:F0")
     eeg_device.start(1000, 0x01, 16)
-    threading.Thread(target=eeg_device.loop).start()
+    t = threading.Thread(target=eeg_device.loop)
+    t.setDaemon(True)
+    t.start()
     print("Ready!")
 
     # Open a PsychoPy window, show the image, collect a keypress, close.
@@ -173,22 +175,14 @@ def main(
                 text_stim_entering_phase2.draw()
                 win.flip()
                 event.waitKeys(keyList=["space"])
-            elif ((pressed_key == "a" or pressed_key == "left") and phase2):
+            elif ((pressed_key == "a" or pressed_key == "left") and phase2 and training):
                 training = False
                 trial_nr = 0
-                # Baseline proprioceptive reporting beginning
-                if not (no_propriocept):
-                    text_stim_prop_reporting.draw()
-                    win.flip()
-                    event.waitKeys(keyList=["space"])
-                    proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), False, win, mouse, eeg_device)
-                    text_stim_begin.draw()
-                    win.flip()
-                    event.waitKeys(keyList=["space"])
             if (block_nr >= n_trials):
                 break
 
-        if (trial_nr == 0 and no_training) and not no_propriocept:
+        # Baseline Proprioceptive reporting at beginning.
+        if (trial_nr == 0 and not training) and not no_propriocept:
             text_stim_prop_reporting.draw()
             win.flip()
             event.waitKeys(keyList=["space"])
@@ -267,7 +261,7 @@ def main(
                     break
             win.flip()
             core.wait(refresh_rate)
-        trial_data.update({"back_movement": [back_movement], "back_timestamps": [back_timestamps], "starting_movement": [starting_movement], "starting_timestamps": [starting_timestamps]})  # TODO: Kann / muss das nicht wo anders hin?
+        trial_data.update({"back_movement": [back_movement], "back_timestamps": [back_timestamps], "starting_movement": [starting_movement], "starting_timestamps": [starting_timestamps]})
 
         offset = 0
 
@@ -316,7 +310,7 @@ def main(
         time_score, timing = time_scoring(list(np.array(virtual_poss)[:, 1]))
         # score for straight
         score = np.round(time_score - err)
-        trial_data.update({'forward_movement': [forward_movement], 'virtual_poss': [virtual_poss], 'forward_timestamps': [forward_timestamps], 'score': [score], 'time_score': [time_score], 'err': [err], 'timing': [timing]})  # TODO: geht das auch an späterer Stelle?
+        trial_data.update({'forward_movement': [forward_movement], 'virtual_poss': [virtual_poss], 'forward_timestamps': [forward_timestamps], 'score': [score], 'time_score': [time_score], 'err': [err], 'timing': [timing]})
 
         # PHASE 3: Proprioception reporting guess
         if (not (no_propriocept) and phase2):
