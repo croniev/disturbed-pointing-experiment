@@ -50,8 +50,8 @@ with open('params.json') as json_data:
 touch_radius, n_proprioceptive_reporting, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y, burst_t_f_ds, address = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y", "burst_t_f_ds", "address"]]
 burst_combis = list(product(burst_time, burst_force))
 trial_list = [k for k in burst_combis for i in range(15)] + [[0, 0] for i in range(int(np.round(15 * len(burst_combis) * (1 - disturb_prob) / disturb_prob)))]
-n_trials = np.round(len(trial_list) / block_size)  # How many normal blocks are performed?
 shuffle(trial_list)
+n_trials = np.round(len(trial_list) / block_size)  # How many normal blocks are performed?
 
 
 def norm2pix(pos, mon):
@@ -204,20 +204,21 @@ def main(
             trial_burst_time, trial_burst_force = trial_list[trial_nr - 1]  # burst_combis[block_nr]
         except IndexError:
             trial_burst_time, trial_burst_force = 0, 0
+
+        trial_data.update({"trial_burst_time": [trial_burst_time], "trial_burst_force": [trial_burst_force]})
+
         # mouse.setPos(top_pos)  # should this be changed?
         if (trial_nr % show_score_every_n_trials == 0 or training):
             text_stim_score.text = (str(timing) + "\nScore: " + str(score))  # + "\n\nTime:" + str(trial_burst_time) + "\nForce:" + str(trial_burst_force)
         else:
             text_stim_score.text = ""  # "\n\nTime:" + str(trial_burst_time) + "\nForce:" + str(trial_burst_force)
 
-        trial_data.update({"trial_burst_time": [trial_burst_time], "trial_burst_force": [trial_burst_force]})
-
         # EEG measurement
-        eeg_device.collect("eeg_back")
+        timer = core.Clock()
+        eeg_device.collect("eeg_back", timer)
 
         # Move mouse back
         back_down = False
-        timer = core.Clock()
         back_movement = []
         starting_movement = []
         back_timestamps = []
@@ -241,8 +242,8 @@ def main(
                 back_timestamps.append(timer.getTime())
                 if math.dist(mouse_pos, beginning_point) < touch_radius:
                     back_down = True
-                    eeg_device.collect("eeg_start")  # bioPLUX
                     timer = core.Clock()
+                    eeg_device.collect("eeg_start", timer)  # bioPLUX
             else:  # PHASE 2: Move upwards
                 op_line_x.draw()
                 op_line_y.draw()
@@ -349,12 +350,12 @@ def main(
     # END SESSION
     text_stim_end.draw()
     win.flip()
-    eeg_device.interrupt()
-    eeg_device.stop()
-    eeg_device.close()
     event.waitKeys()
     win.setMouseVisible(True)
     win.close()
+    eeg_device.interrupt()
+    eeg_device.stop()
+    eeg_device.close()
     core.quit()
 
 

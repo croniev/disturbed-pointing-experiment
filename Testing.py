@@ -29,7 +29,9 @@ class MyBioplux(plux.SignalsDev):
 eeg_data = {"eeg_back": [], "eeg_start": [], "eeg_forward": [], "eeg_pr": [], "eeg_back_timestamps": [], "eeg_start_timestamps": [], "eeg_forward_timestamps": [], "eeg_pr_timestamps": []}
 device = MyBioplux("BTH00:07:80:89:7F:F0")
 device.start(1000, 0x01, 16)
-threading.Thread(target=device.loop).start()
+t = threading.Thread(target=device.loop)
+t.setDaemon(True)
+t.start()
 print("Thread started. Collecting...")
 
 # During collection
