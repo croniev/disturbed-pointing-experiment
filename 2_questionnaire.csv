@@ -1,5 +1,5 @@
 itemText,type,options,layout
-"servus",heading,"",horiz
+"Please mark the number that comes closest to your sensation for each exercise. 0 corresponds to ‘no sensation at all’, 1 to ‘slight sensation’, 2 to ‘medium sensation’, 3 to ‘strong sensation’ and 4 to ‘very strong sensation’.",heading,"",horiz
 "Ocean Sounds",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
 "Provocation of a salty taste",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
 "Provocation of a sweet taste",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
@@ -9,8 +9,9 @@ itemText,type,options,layout
 "Perception of the finger contours",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
 "Perception of a bluish color",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
 "Perception of warmth on the face",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
-"Have you often mistaken objects or shadows for people, or noises for voices?",rating,"Strongly agree, Slightly agree, Slightly disagree, Strongly disagree",horiz
-"Have you ever had the sense that some person or force is around you, even though you cannot see anyone?",rating,"Strongly agree, Slightly agree, Slightly disagree, Strongly disagree",horiz
-"Do you sometimes see special meanings in advertisements, shop windows, or in the way things are arranged around you?",rating,"Strongly agree, Slightly agree, Slightly disagree, Strongly disagree",horiz
-"Have you ever seen things invisible to other people?",rating,"Strongly agree, Slightly agree, Slightly disagree, Strongly disagree",horiz
-"Does your sense of smell sometimes become unusually strong?",rating,"Strongly agree, Slightly agree, Slightly disagree, Strongly disagree",horiz
+"Now please answer the following questions.",heading
+"Have you often mistaken objects or shadows for people, or noises for voices?",rating,"Strongly disagree, Slightly disagree, Slightly agree, Strongly agree",horiz
+"Have you ever had the sense that some person or force is around you, even though you cannot see anyone?",rating,"Strongly disagree, Slightly disagree, Slightly agree, Strongly agree",horiz
+"Do you sometimes see special meanings in advertisements, shop windows, or in the way things are arranged around you?",rating,"Strongly disagree, Slightly disagree, Slightly agree, Strongly agree",horiz
+"Have you ever seen things invisible to other people?",rating,"Strongly disagree, Slightly disagree, Slightly agree, Strongly agree",horiz
+"Does your sense of smell sometimes become unusually strong?",rating,"Strongly disagree, Slightly disagree, Slightly agree, Strongly agree",horiz

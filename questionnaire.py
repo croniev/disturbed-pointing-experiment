@@ -44,6 +44,7 @@ def main(
 
 @click.command()
 @click.option(
+    "-u",
     "--user",
     default="0",
     type=str,
