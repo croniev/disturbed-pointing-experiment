@@ -14,3 +14,12 @@ def main(
 
 
 # Methoden für analyse schreiben (inkl. plt.savefig())
+
+
+def cli():
+    main(
+    )
+
+
+if __name__ == "__main__":
+    cli()

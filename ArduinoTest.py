@@ -1,7 +1,11 @@
 import pyfirmata
 from psychopy import core
+import platform
 
-board = pyfirmata.Arduino('/dev/ttyACM0')
+if platform.system() == 'Windows':
+    board = pyfirmata.Arduino('COM5', baudrate=57600)
+else:
+    board = pyfirmata.Arduino('/dev/ttyACM0')
 
 motor = board.get_pin('d:12:o')
 print("geht los!")
