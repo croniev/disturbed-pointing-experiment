@@ -23,7 +23,7 @@ def main(
 
     # Create Form
     try:
-        formEl = visual.Form(win, items=str(form) + "_questionnaire.csv", size=(0.9, 0.9))
+        formEl = visual.Form(win, items=str(form) + "_questionnaire.csv", size=(0.8, 0.5))
         formEl.setAutoDraw(True)
     except ValueError:
         print("ERROR: Please provide form argument! (i.e. --form 1 or 2)")

@@ -21,22 +21,22 @@ class MyBioplux(plux.SignalsDev):
         self.timer = None
 
     def onRawFrame(self, nSeq, data):
-        global eeg_data
+        global eda_data
         if self.bucket:
-            eeg_data[self.bucket][0].append(float(*data))
-            eeg_data[str(self.bucket + "_timestamps")][0].append(round(self.timer.getTime(), 6))
+            eda_data[self.bucket][0].append(float(*data))
+            eda_data[str(self.bucket + "_timestamps")][0].append(round(self.timer.getTime(), 6))
         return False
 
     def collect(self, bucket, timer):
-        global eeg_data
+        global eda_data
         self.bucket = bucket
         if bucket:
-            eeg_data[bucket] = [[]]
-            eeg_data[str(bucket + "_timestamps")] = [[]]
+            eda_data[bucket] = [[]]
+            eda_data[str(bucket + "_timestamps")] = [[]]
         self.timer = timer
 
 
-eeg_data = {"eeg_back": [[]], "eeg_start": [[]], "eeg_forward": [[]], "eeg_pr": [[]], "eeg_back_timestamps": [[]], "eeg_start_timestamps": [[]], "eeg_forward_timestamps": [[]], "eeg_pr_timestamps": [[]]}
+eda_data = {"eda_back": [[]], "eda_start": [[]], "eda_forward": [[]], "eda_pr": [[]], "eda_back_timestamps": [[]], "eda_start_timestamps": [[]], "eda_forward_timestamps": [[]], "eda_pr_timestamps": [[]]}
 
 # to avoid bug on windows (https://www.psychopy.org/troubleshooting.html#errors-with-getting-setting-the-gamma-ramp)
 prefs.general["gammaErrorPolicy"] = "warn"
@@ -47,7 +47,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 # Parameters
 with open('params.json') as json_data:
     PARAMS = json.load(json_data)
-touch_radius, n_proprioceptive_reporting, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y, burst_t_f_ds, address = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y", "burst_t_f_ds", "address"]]
+touch_radius, n_proprioceptive_reporting, block_size, orientation_point, beginning_point, target_pos, top_pos, time_score_dist_crit, time_score_time_crit, refresh_rate, disturb_prob, burst_time, burst_dur, burst_force, show_score_every_n_trials, time_limit, question_prob, p_x, p_y, address = [PARAMS.get(k)[0] for k in ["touch_radius", "n_proprioceptive_reporting", "block_size", "orientation_point", "beginning_point", "target_pos", "top_pos", "time_score_dist_crit", "time_score_time_crit", "refresh_rate", "disturb_prob", "burst_time", "burst_dur", "burst_force", "show_score_every_n_trials", "time_limit", "question_prob", "p_x", "p_y", "address"]]
 burst_combis = list(product(burst_time, burst_force))
 trial_list = [k for k in burst_combis for i in range(15)] + [[0, 0] for i in range(int(np.round(15 * len(burst_combis) * (1 - disturb_prob) / disturb_prob)))]
 shuffle(trial_list)
@@ -80,9 +80,9 @@ def main(
     lefthanded: bool = False,
 ) -> None:
     print("Loading BioPLUX device...")
-    eeg_device = MyBioplux("BTH00:07:80:89:7F:F0")
-    eeg_device.start(1000, 0x01, 16)
-    t = threading.Thread(target=eeg_device.loop)
+    eda_device = MyBioplux("BTH00:07:80:89:7F:F0")
+    eda_device.start(1000, 0x01, 16)
+    t = threading.Thread(target=eda_device.loop)
     t.setDaemon(True)
     t.start()
     print("Ready!")
@@ -121,7 +121,7 @@ def main(
     timing = None
 
     trial_nr = 0
-    block_nr = 0
+    block_nr = -1
     phase2 = False
     if (not no_training):
         training = True
@@ -135,16 +135,13 @@ def main(
             if (training):
                 text_stim_block_complete_saving.text = "You have completed a training block.\n\nSaving data... please wait"
             else:
-                text_stim_block_complete_saving.text = "You have completed a block.\nRelax for a bit.\n\nSaving data... please wait"
+                text_stim_block_complete_saving.text = f"You have completed block {block_nr} of {n_trials}.\nRelax for a bit.\n\nSaving data... please wait"
                 block_nr += 1
             text_stim_block_complete_saving.draw()
             win.flip()
 
             # save data
-            if os.path.isfile("data/" + user + "_data.csv"):
-                df.to_csv(str("data/" + user + "_data.csv"), mode='a', index=False, header=False)
-            else:
-                df.to_csv(str("data/" + user + "_data.csv"), index=False)
+            df.to_csv(str("data/" + user + "_b" + str(block_nr - 1) + "_data.csv"), index=False)
             df = pd.DataFrame()
 
             if (training and not phase2):
@@ -166,18 +163,20 @@ def main(
             if pressed_key == "q":
                 win.setMouseVisible(True)
                 win.close()
-                eeg_device.interrupt()
-                eeg_device.stop()
-                eeg_device.close()
+                eda_device.interrupt()
+                eda_device.stop()
+                eda_device.close()
                 core.quit()
             elif (pressed_key == "a" or pressed_key == "left") and not phase2:
                 phase2 = True
                 text_stim_entering_phase2.draw()
                 win.flip()
+                block_nr = 0
                 event.waitKeys(keyList=["space"])
             elif ((pressed_key == "a" or pressed_key == "left") and phase2 and training):
                 training = False
                 trial_nr = 0
+                block_nr = 0
             if (block_nr >= n_trials):
                 break
 
@@ -186,7 +185,7 @@ def main(
             text_stim_prop_reporting.draw()
             win.flip()
             event.waitKeys(keyList=["space"])
-            proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), False, win, mouse, eeg_device)
+            proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_beginning.csv"), False, win, mouse, eda_device)
             text_stim_begin.draw()
             win.flip()
             event.waitKeys(keyList=["space"])
@@ -197,9 +196,9 @@ def main(
         if len(event.getKeys(keyList=['q'])) > 0:
             win.setMouseVisible(True)
             win.close()
-            eeg_device.interrupt()
-            eeg_device.stop()
-            eeg_device.close()
+            eda_device.interrupt()
+            eda_device.stop()
+            eda_device.close()
             core.quit()
 
         try:
@@ -217,7 +216,7 @@ def main(
 
         # EEG measurement
         timer = core.Clock()
-        eeg_device.collect("eeg_back", timer)
+        eda_device.collect("eda_back", timer)
 
         # Move mouse back
         back_down = False
@@ -229,9 +228,9 @@ def main(
             if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
                 win.setMouseVisible(True)
                 win.close()
-                eeg_device.interrupt()
-                eeg_device.stop()
-                eeg_device.close()
+                eda_device.interrupt()
+                eda_device.stop()
+                eda_device.close()
                 core.quit()
 
             text_stim_score.draw()
@@ -239,26 +238,29 @@ def main(
             if training:
                 training_line.draw()
 
-            mouse_pos = mouse.getPos()
+            mouse_pos = [mouse.getPos()[0], mouse.getPos()[1]]
             if not (back_down):  # PHASE 1: Preparation - move mouse back
                 beginning_point_shape.draw()
-                # new_circle(win, mouse_pos, color=(0, 200, 5)).draw()
+                if math.dist(mouse.getPos(), beginning_point) < 5 * touch_radius:
+                    new_circle(win, mouse.getPos(), color=(0, 200, 5)).draw()
                 back_movement.append(mouse_pos)
                 back_timestamps.append(round(timer.getTime(), 6))
                 if math.dist(mouse_pos, beginning_point) < touch_radius:
                     back_down = True
                     timer = core.Clock()
-                    eeg_device.collect("eeg_start", timer)  # bioPLUX
+                    eda_device.collect("eda_start", timer)  # bioPLUX
             else:  # PHASE 2: Move upwards
                 op_line_x.draw()
                 op_line_y.draw()
                 new_circle(win, mouse_pos).draw()
                 starting_movement.append(mouse_pos)
                 starting_timestamps.append(round(timer.getTime(), 6))
-                if math.dist(mouse_pos, orientation_point) < 25:  # touch_radius:
+                if (math.dist(mouse_pos, orientation_point) < 25 and training) or (math.dist(mouse_pos, orientation_point) < 50 and not training):
                     timer = core.Clock()
-                    eeg_device.collect("eeg_forward", timer)
+                    eda_device.collect("eda_forward", timer)
                     break
+                elif (mouse_pos[1] > orientation_point[1]):
+                    text_stim_score.text = "You missed the cross!"
             win.flip()
             core.wait(refresh_rate)
         trial_data.update({"back_movement": [back_movement], "back_timestamps": [back_timestamps], "starting_movement": [starting_movement], "starting_timestamps": [starting_timestamps]})
@@ -267,18 +269,18 @@ def main(
 
         # PHASE 2: Pointing Task
         forward_movement = []
-        virtual_poss = []
+        virtual_movement = []
         forward_timestamps = []
         err = 0
         while True:  # Perform pointing task
             if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
                 win.setMouseVisible(True)
                 win.close()
-                eeg_device.interrupt()
-                eeg_device.stop()
-                eeg_device.close()
+                eda_device.interrupt()
+                eda_device.stop()
+                eda_device.close()
                 core.quit()
-            mouse_pos = mouse.getPos()
+            mouse_pos = [mouse.getPos()[0], mouse.getPos()[1]]
 
             # Apply Distortion
             # Es sieht anders aus als es ist ==> wir behalten die Information darüber, wo die Hand actually ist.
@@ -288,7 +290,7 @@ def main(
 
             # Save movements with times
             forward_movement.append(mouse_pos)
-            virtual_poss.append(virtual_mouse_pos)
+            virtual_movement.append(virtual_mouse_pos)
             forward_timestamps.append(round(timer.getTime(), 6))
 
             # Draw Stuff
@@ -303,21 +305,21 @@ def main(
             err += np.absolute(0 - virtual_mouse_pos[0])
             # Breakout condition
             if timer.getTime() >= time_limit:
-                eeg_device.collect(None, None)
+                eda_device.collect(None, None)
                 break
             core.wait(refresh_rate)
 
-        time_score, timing = time_scoring(list(np.array(virtual_poss)[:, 1]))
+        time_score, timing = time_scoring(list(np.array(virtual_movement)[:, 1]))
         # score for straight
         score = np.round(time_score - err)
-        trial_data.update({'forward_movement': [forward_movement], 'virtual_poss': [virtual_poss], 'forward_timestamps': [forward_timestamps], 'score': [score], 'time_score': [time_score], 'err': [err], 'timing': [timing]})
+        trial_data.update({'forward_movement': [forward_movement], 'virtual_movement': [virtual_movement], 'forward_timestamps': [forward_timestamps], 'score': [score], 'time_score': [time_score], 'err': [err], 'timing': [timing]})
 
         # PHASE 3: Proprioception reporting guess
         if (not (no_propriocept) and phase2):
-            pr_data = proprioceptive_reporting(1, "", training, win, mouse, eeg_device)
+            pr_data = proprioceptive_reporting(1, "", training, win, mouse, eda_device)
             trial_data.update(pr_data)
 
-        trial_data.update(eeg_data)
+        trial_data.update(eda_data)
 
         # PHASE 4: Ask question
         if phase2 and (trial_burst_force != 0 or np.random.choice([True, False], p=[question_prob, 1 - question_prob])):
@@ -331,9 +333,9 @@ def main(
             if pressed_key[0][0] == "q":  # DEBUG
                 win.setMouseVisible(True)
                 win.close()
-                eeg_device.interrupt()
-                eeg_device.stop()
-                eeg_device.close()
+                eda_device.interrupt()
+                eda_device.stop()
+                eda_device.close()
                 core.quit()
             elif pressed_key[0][0] == "a" or pressed_key[0][0] == "l":
                 trial_data.update({"question_asked": [True], "subj_answer": [True], "answer_time": [pressed_key[0][1]]})
@@ -356,7 +358,7 @@ def main(
         text_stim_prop_reporting_2.draw()
         win.flip()
         event.waitKeys(keyList=["space"])
-        proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_ending.csv"), False, win, mouse, eeg_device)
+        proprioceptive_reporting(n_proprioceptive_reporting, str(user + "_ending.csv"), False, win, mouse, eda_device)
 
     # END SESSION
     text_stim_end.draw()
@@ -364,13 +366,13 @@ def main(
     event.waitKeys()
     win.setMouseVisible(True)
     win.close()
-    eeg_device.interrupt()
-    eeg_device.stop()
-    eeg_device.close()
+    eda_device.interrupt()
+    eda_device.stop()
+    eda_device.close()
     core.quit()
 
 
-def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eeg_device):
+def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eda_device):
     # prop_data = pd.DataFrame(columns=["pr_mouse_beginn", "pr_mouse_pos", "pr_target", "pr_hit", "pr_movement"])
     for i in range(n):
         single_data = {}
@@ -394,9 +396,9 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eeg_device)
                 if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
                     win.setMouseVisible(True)
                     win.close()
-                    eeg_device.interrupt()
-                    eeg_device.stop()
-                    eeg_device.close()
+                    eda_device.interrupt()
+                    eda_device.stop()
+                    eda_device.close()
                     core.quit()
 
                 bp_line_x.draw()
@@ -416,22 +418,22 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eeg_device)
         target_shape.draw()
         win.flip()
         hit = False
-        single_data = {"pr_mouse_beginn": [mouse.getPos()]}
+        single_data = {"pr_mouse_beginn": [[mouse.getPos()[0], mouse.getPos()[1]]]}
         pr_movement = []
         pr_timestamps = []
         timer = core.Clock()
-        eeg_device.collect("eeg_pr", timer)
+        eda_device.collect("eda_pr", timer)
         while True:
-            pr_movement.append(mouse.getPos())
+            pr_movement.append([mouse.getPos()[0], mouse.getPos()[1]])
             pr_timestamps.append(round(timer.getTime(), 6))
             if mouse.getPressed()[1] != 0:
                 if math.dist(mouse.getPos(), target) < touch_radius + 10:
                     hit = True
-                eeg_device.collect(None, None)
+                eda_device.collect(None, None)
                 break
-        single_data.update({"pr_mouse_pos": [mouse.getPos()], "pr_target": [target], "pr_distance": [math.dist(mouse.getPos(), target)], "pr_hit": [hit], "pr_movement": [pr_movement], "pr_time": [timer.getTime()], "pr_timestamps": [pr_timestamps]})
-        global eeg_data
-        single_data.update({"eeg_pr": eeg_data["eeg_pr"], "eeg_pr_timestamps": eeg_data["eeg_pr_timestamps"]})
+        single_data.update({"pr_mouse_pos": [[mouse.getPos()[0], mouse.getPos()[1]]], "pr_target": [target], "pr_distance": [math.dist(mouse.getPos(), target)], "pr_hit": [hit], "pr_movement": [pr_movement], "pr_time": [timer.getTime()], "pr_timestamps": [pr_timestamps]})
+        global eda_data
+        single_data.update({"eda_pr": eda_data["eda_pr"], "eda_pr_timestamps": eda_data["eda_pr_timestamps"]})
 
         if show_feedback:
             if hit:
@@ -550,12 +552,12 @@ def stims(win):
     # TEXTS
     text_stim_prop_reporting = visual.TextStim(win,
                                                units="norm",
-                                               text=("Before the experiment starts we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to middle-click on the white circle.\n\nPress <space> to continue."),
+                                               text=("Before the experiment starts we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to click on the white circle with the side-button of the pen.\n\nPress <space> to continue."),
                                                wrapWidth=0.9,
                                                height=0.05)
     text_stim_prop_reporting_2 = visual.TextStim(win,
                                                  units="norm",
-                                                 text=("Once again we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to middle-click on the white circle.\n\nPress <space> to continue."),
+                                                 text=("Once again we will collect some baseline data.\n\nPlease move your cursor to the marked spot and then try to click on the white circle with the side-button of the pen.\n\nPress <space> to continue."),
                                                  wrapWidth=0.9,
                                                  height=0.05)
     text_stim_block_complete_saving = visual.TextStim(win,
@@ -589,7 +591,7 @@ def stims(win):
                                     height=0.05)
     text_stim_entering_phase2 = visual.TextStim(win,
                                                 units="norm",
-                                                text=("After moving, stay where you are. \nThen middle-click on the target (your mouse is hidden).\nAfterwards, you may be asked a question that you can answer with indicated keys.\n\nPress <space> to continue."),
+                                                text=("After moving, stay where you are. \nThen click on the target with the side-button of the pen (your mouse is hidden).\nAfterwards, you may be asked a question that you can answer with indicated keys.\n\nPress <space> to continue."),
                                                 wrapWidth=0.9,
                                                 height=0.05)
     text_stim_begin = visual.TextStim(win,

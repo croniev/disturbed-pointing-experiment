@@ -8,6 +8,15 @@ import bisect
 import matplotlib as plt
 import seaborn as sb
 
+# Load data
+# To know how many datasets we have (assuming that if usr_data.csv is present so are usr_1_questionnaire, usr_2_questionnaire, usr_beginning and usr_ending)
+n_users = len([name for name in os.listdir('.') if os.path.isfile(name) and 'data' in name])
+# quest_1 = [pd.read_csv(str(usr + "_1_questionnaire.csv")) for usr in range(n_users)]
+# quest_2 = [pd.read_csv(str(usr + "_2_questionnaire.csv")) for usr in range(n_users)]
+# data = [pd.read_csv(str(usr + "_data.csv")) for usr in range(n_users)]
+beginning = [pd.read_csv(str(usr + "_beginning.csv")) for usr in range(n_users)]
+# ending = [pd.read_csv(str(usr + "_ending.csv")) for usr in range(n_users)]
+
 
 def main(
         args: list
