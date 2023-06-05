@@ -135,7 +135,7 @@ def main(
             if (training):
                 text_stim_block_complete_saving.text = "You have completed a training block.\n\nSaving data... please wait"
             else:
-                text_stim_block_complete_saving.text = f"You have completed block {block_nr} of {n_trials}.\nRelax for a bit.\n\nSaving data... please wait"
+                text_stim_block_complete_saving.text = f"You have completed block {block_nr + 1} of {str(int(n_trials - 1))}.\nRelax for a bit.\n\nSaving data... please wait"
                 block_nr += 1
             text_stim_block_complete_saving.draw()
             win.flip()
