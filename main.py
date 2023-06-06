@@ -167,7 +167,10 @@ def main(
             text_stim_block_complete_saving.draw()
             win.flip()
 
-            pressed_key = event.waitKeys(keyList=["space", "a", "left", "q"])[0]
+            if training: 
+                pressed_key = event.waitKeys(keyList=["space", "a", "left", "q"])[0]
+            else:
+                pressed_key = event.waitKeys(keyList=["space", "q"])[0]
             if pressed_key == "q":
                 win.setMouseVisible(True)
                 win.close()
@@ -182,7 +185,7 @@ def main(
                 win.flip()
                 block_nr = -1
                 event.waitKeys(keyList=["space"])
-            elif ((pressed_key == "a" or pressed_key == "left") and phase2 and training):
+            elif ((pressed_key == "a" or pressed_key == "left") and phase2):
                 training = False
                 trial_nr = 0
                 block_nr = 0
@@ -331,25 +334,33 @@ def main(
 
         # PHASE 4: Ask question
         if phase2 and (trial_burst_force != 0 or np.random.choice([True, False], p=[question_prob, 1 - question_prob])):
-            if not lefthanded:
-                text_stim_feedback.draw()
-            else:
-                text_stim_feedback_lh.draw()
-            win.flip()
-            timer = core.Clock()
-            pressed_key = event.waitKeys(keyList=["q", "a", "d", "left", "right"], timeStamped=timer)
-            if pressed_key[0][0] == "q":  # DEBUG
-                win.setMouseVisible(True)
-                win.close()
-                # bioPLUX
-                # eda_device.interrupt()
-                # eda_device.stop()
-                # eda_device.close()
-                core.quit()
-            elif pressed_key[0][0] == "a" or pressed_key[0][0] == "l":
-                trial_data.update({"question_asked": [True], "subj_answer": [True], "answer_time": [pressed_key[0][1]]})
-            elif pressed_key[0][0] == "d" or pressed_key[0][0] == "r":
-                trial_data.update({"question_asked": [True], "subj_answer": [False], "answer_time": [pressed_key[0][1]]})
+            subj_answer = 2
+            while (True):
+                if not lefthanded:
+                    text_stim_feedback.draw()
+                else:
+                    text_stim_feedback_lh.draw()
+                subj_answer_scale(win, subj_answer)
+                win.flip()
+                timer = core.Clock()
+                pressed_key = event.waitKeys(keyList=["space", "q", "a", "d", "left", "right"], timeStamped=timer)
+                if pressed_key[0][0] == "q":  # DEBUG
+                    win.setMouseVisible(True)
+                    win.close()
+                    # bioPLUX
+                    # eda_device.interrupt()
+                    # eda_device.stop()
+                    # eda_device.close()
+                    core.quit()
+                elif pressed_key[0][0] == "a" or pressed_key[0][0] == "left":
+                    if subj_answer > 0:
+                        subj_answer -= 1
+                elif pressed_key[0][0] == "d" or pressed_key[0][0] == "right":
+                    if subj_answer < 4:
+                        subj_answer += 1
+                elif pressed_key[0][0] == "space":
+                    break
+            trial_data.update({"question_asked": [True], "subj_answer": [subj_answer], "answer_time": [pressed_key[0][1]]})
         else:
             trial_data.update({"question_asked": [False], "subj_answer": [None], "answer_time": [None]})  # If no question is asked
             win.flip()
@@ -377,7 +388,7 @@ def main(
         np.save(filename + "_be.npy", np.array([eda_data["eda_back"], eda_data["eda_back_timestamps"]], dtype=object))
         np.save(filename + "_se.npy", np.array([eda_data["eda_start"], eda_data["eda_start_timestamps"]], dtype=object))
         np.save(filename + "_fe.npy", np.array([eda_data["eda_forward"], eda_data["eda_forward_timestamps"]], dtype=object))
-        if not(training and not phase2):
+        if not(training and not phase2) and not no_propriocept:
             np.save(filename + "_pm.npy", np.array([pr_movement, pr_timestamps], dtype=object))
             np.save(filename + "_pe.npy", np.array([eda_data["eda_pr"], eda_data["eda_pr_timestamps"]], dtype=object))
 
@@ -546,6 +557,23 @@ def time_scoring(y_array):
     return int(np.round(score)), timing
 
 
+def subj_answer_scale(win, a):
+    visual.Line(win, start=(-100, -145), end=(100, -145), lineWidth=5, color=(0, 0, 0), colorSpace='rgb255').draw()
+    visual.Line(win, start=(-100, -130), end=(-100, -160), lineWidth=5, color=(0, 0, 0), colorSpace='rgb255').draw()
+    visual.Line(win, start=(-50, -130), end=(-50, -160), lineWidth=5, color=(0, 0, 0), colorSpace='rgb255').draw()
+    visual.Line(win, start=(0, -130), end=(0, -160), lineWidth=5, color=(0, 0, 0), colorSpace='rgb255').draw()
+    visual.Line(win, start=(50, -130), end=(50, -160), lineWidth=5, color=(0, 0, 0), colorSpace='rgb255').draw()
+    visual.Line(win, start=(100, -130), end=(100, -160), lineWidth=5, color=(0, 0, 0), colorSpace='rgb255').draw()
+    poss = [[-100, -145], [-50, -145], [0, -145], [50, -145], [100, -145]]
+    visual.Circle(win, radius=10, pos=poss[a], fillColor=(255, 0, 0), colorSpace='rgb255').draw()
+    visual.TextStim(win,
+                    text=("No sensation"),
+                    pos=[-180, -145]).draw()
+    visual.TextStim(win,
+                    text=("Strong sensation"),
+                    pos=[195, -145]).draw()
+
+
 def rotate_point(point, deg, origin=(0, 0)):
     angle = np.deg2rad(deg)
     x = point[0] - origin[0]
@@ -609,14 +637,14 @@ def stims(win):
                                          colorSpace="rgb255",
                                          color=(255, 204, 0),
                                          units="norm",
-                                         text=("For the last movement:\n\nPress <a> if you felt like force was applied to your arm during the upwards movement.\nPress <d> if you did not."),
+                                         text=("For the last movement:\n\nPlease rate if you felt like force was applied to your arm during the upwards movement.\nUse <a> and <d> to change the value. Press <space> to confirm."),
                                          wrapWidth=0.9,
                                          height=0.05)
     text_stim_feedback_lh = visual.TextStim(win,
                                             colorSpace="rgb255",
                                             color=(255, 204, 0),
                                             units="norm",
-                                            text=("For the last movement:\n\nPress <left arrow> if you felt like force was applied to your arm during the upwards movement.\nPress <right arrow> if you did not."),
+                                            text=("For the last movement:\n\nPlease rate if you felt like force was applied to your arm during the upwards movement.\nUse <left> and <right> to change the value. Press <space> to confirm."),
                                             wrapWidth=0.9,
                                             height=0.05)
     text_stim_end = visual.TextStim(win,

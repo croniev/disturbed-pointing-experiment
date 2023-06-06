@@ -36,7 +36,7 @@ def main(
         key = event.getKeys()
         if len(key) != 0 and key[0] == 'p' and formEl.complete:
             df = pd.DataFrame(formEl.getData())
-            df[["itemText", "response"]].to_csv("data/" + user + "/" + str(form) + "_questionnaire.csv")
+            df[["itemText", "response"]].to_csv("data/" + user + "/" + str(form) + "_questionnaire.csv", index=False)
             break
 
     win.close()

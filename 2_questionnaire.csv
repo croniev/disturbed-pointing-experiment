@@ -1,14 +1,14 @@
 itemText,type,options,layout
 "Please mark the number that comes closest to your sensation for each exercise. 0 corresponds to ‘no sensation at all’, 1 to ‘slight sensation’, 2 to ‘medium sensation’, 3 to ‘strong sensation’ and 4 to ‘very strong sensation’.",heading,"",horiz
-"Ocean Sounds",slider,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
-"Provocation of a salty taste",slider,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
-"Provocation of a sweet taste",slider,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
-"Tingling in the hand",slider,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
-"Perception of one's pulse",slider,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
-"Acoustic perception of one's pulse",slider,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
-"Perception of the finger contours",slider,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
-"Perception of a bluish color",slider,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
-"Perception of warmth on the face",slider,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
+"Ocean Sounds",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
+"Provocation of a salty taste",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
+"Provocation of a sweet taste",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
+"Tingling in the hand",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
+"Perception of one's pulse",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
+"Acoustic perception of one's pulse",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
+"Perception of the finger contours",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
+"Perception of a bluish color",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
+"Perception of warmth on the face",rating,"No sensation\n0, 1, 2, 3, Very strong sensation\n4",horiz
 "Now please answer the following questions.",heading
 "Have you often mistaken objects or shadows for people, or noises for voices?",rating,"Strongly disagree, Slightly disagree, Slightly agree, Strongly agree",horiz
 "Have you ever had the sense that some person or force is around you, even though you cannot see anyone?",rating,"Strongly disagree, Slightly disagree, Slightly agree, Strongly agree",horiz
