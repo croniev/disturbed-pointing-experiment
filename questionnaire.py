@@ -17,9 +17,9 @@ def main(
         allowStencil=True,
         fullscr=True)
 
-    os.makedirs("./data", exist_ok=True)
-    if os.path.isfile(str("data/" + user + "_" + str(form) + "_questionnaire.csv")):
-        os.remove(str("data/" + user + "_" + str(form) + "_questionnaire.csv"))
+    os.makedirs("./data/" + user, exist_ok=True)
+    # if os.path.isfile(str("data/" + user + "_" + str(form) + "_questionnaire.csv")):
+    #     os.remove(str("data/" + user + "_" + str(form) + "_questionnaire.csv"))
 
     # Create Form
     try:
@@ -36,7 +36,7 @@ def main(
         key = event.getKeys()
         if len(key) != 0 and key[0] == 'p' and formEl.complete:
             df = pd.DataFrame(formEl.getData())
-            df[["itemText", "response"]].to_csv("data/" + user + "_" + str(form) + "_questionnaire.csv")
+            df[["itemText", "response"]].to_csv("data/" + user + "/" + str(form) + "_questionnaire.csv")
             break
 
     win.close()
