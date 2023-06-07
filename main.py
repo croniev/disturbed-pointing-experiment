@@ -175,9 +175,9 @@ def main(
                 win.setMouseVisible(True)
                 win.close()
                 # bioPLUX
-                # eda_device.interrupt()
-                # eda_device.stop()
-                # eda_device.close()
+                eda_device.interrupt()
+                eda_device.stop()
+                eda_device.close()
                 core.quit()
             elif (pressed_key == "a" or pressed_key == "left") and not phase2:
                 phase2 = True
@@ -208,9 +208,9 @@ def main(
             win.setMouseVisible(True)
             win.close()
             # bioPLUX
-            # eda_device.interrupt()
-            # eda_device.stop()
-            # eda_device.close()
+            eda_device.interrupt()
+            eda_device.stop()
+            eda_device.close()
             core.quit()
 
         try:
@@ -228,7 +228,7 @@ def main(
 
         # EEG measurement
         timer = core.Clock()
-        # eda_device.collect("eda_back", timer) # bioPLUX
+        eda_device.collect("eda_back", timer) # bioPLUX
 
         # Move mouse back
         back_down = False
@@ -241,9 +241,9 @@ def main(
                 win.setMouseVisible(True)
                 win.close()
                 # bioPLUX
-                # eda_device.interrupt()
-                # eda_device.stop()
-                # eda_device.close()
+                eda_device.interrupt()
+                eda_device.stop()
+                eda_device.close()
                 core.quit()
 
             text_stim_score.draw()
@@ -261,7 +261,7 @@ def main(
                 if math.dist(mouse_pos, beginning_point) < touch_radius:
                     back_down = True
                     timer = core.Clock()
-                    # eda_device.collect("eda_start", timer)  # bioPLUX
+                    eda_device.collect("eda_start", timer)  # bioPLUX
             else:  # PHASE 2: Move upwards
                 op_line_x.draw()
                 op_line_y.draw()
@@ -270,7 +270,7 @@ def main(
                 starting_timestamps.append(round(timer.getTime(), 6))
                 if (math.dist(mouse_pos, orientation_point) < 25 and training) or (math.dist(mouse_pos, orientation_point) < 50 and not training):
                     timer = core.Clock()
-                    # eda_device.collect("eda_forward", timer)  # bioPLUX
+                    eda_device.collect("eda_forward", timer)  # bioPLUX
                     break
                 elif (mouse_pos[1] > orientation_point[1]):
                     text_stim_score.text = "You missed the cross!"
@@ -289,9 +289,9 @@ def main(
                 win.setMouseVisible(True)
                 win.close()
                 # bioPLUX
-                # eda_device.interrupt()
-                # eda_device.stop()
-                # eda_device.close()
+                eda_device.interrupt()
+                eda_device.stop()
+                eda_device.close()
                 core.quit()
             mouse_pos = [mouse.getPos()[0], mouse.getPos()[1]]
 
@@ -318,7 +318,7 @@ def main(
             err += np.absolute(0 - virtual_mouse_pos[0])
             # Breakout condition
             if timer.getTime() >= time_limit:
-                # eda_device.collect(None, None)  # bioPLUX
+                eda_device.collect(None, None)  # bioPLUX
                 break
             core.wait(refresh_rate)
 
@@ -348,9 +348,9 @@ def main(
                     win.setMouseVisible(True)
                     win.close()
                     # bioPLUX
-                    # eda_device.interrupt()
-                    # eda_device.stop()
-                    # eda_device.close()
+                    eda_device.interrupt()
+                    eda_device.stop()
+                    eda_device.close()
                     core.quit()
                 elif pressed_key[0][0] == "a" or pressed_key[0][0] == "left":
                     if subj_answer > 0:
@@ -407,9 +407,9 @@ def main(
     win.setMouseVisible(True)
     win.close()
     # bioPLUX
-    # eda_device.interrupt()
-    # eda_device.stop()
-    # eda_device.close()
+    eda_device.interrupt()
+    eda_device.stop()
+    eda_device.close()
     core.quit()
 
 
@@ -438,9 +438,9 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eda_device)
                     win.setMouseVisible(True)
                     win.close()
                     # bioPLUX
-                    # eda_device.interrupt()
-                    # eda_device.stop()
-                    # eda_device.close()
+                    eda_device.interrupt()
+                    eda_device.stop()
+                    eda_device.close()
                     core.quit()
 
                 bp_line_x.draw()
@@ -464,14 +464,14 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eda_device)
         pr_movement = []
         pr_timestamps = []
         timer = core.Clock()
-        # eda_device.collect("eda_pr", timer)  # bioPLUX
+        eda_device.collect("eda_pr", timer)  # bioPLUX
         while True:
             pr_movement.append([mouse.getPos()[0], mouse.getPos()[1]])
             pr_timestamps.append(round(timer.getTime(), 6))
             if mouse.getPressed()[1] != 0:
                 if math.dist(mouse.getPos(), target) < touch_radius + 10:
                     hit = True
-                # eda_device.collect(None, None)  # bioPLUX
+                eda_device.collect(None, None)  # bioPLUX
                 break
         single_data.update({"pr_i": [i], "pr_mouse_pos_x": [mouse.getPos()[0]], "pr_mouse_pos_y": [mouse.getPos()[1]], "pr_target_x": [target[0]], "pr_target_y": [target[1]], "pr_distance": [math.dist(mouse.getPos(), target)], "pr_hit": [hit], "pr_time": [timer.getTime()]})
 
