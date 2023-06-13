@@ -251,7 +251,7 @@ def main(
             if training:
                 training_line.draw()
 
-            mouse_pos = [mouse.getPos()[0], mouse.getPos()[1]]
+            mouse_pos = np.array([mouse.getPos()[0], mouse.getPos()[1]])
             if not (back_down):  # PHASE 1: Preparation - move mouse back
                 beginning_point_shape.draw()
                 if math.dist(mouse.getPos(), beginning_point) < 5 * touch_radius:
@@ -293,13 +293,13 @@ def main(
                 eda_device.stop()
                 eda_device.close()
                 core.quit()
-            mouse_pos = [mouse.getPos()[0], mouse.getPos()[1]]
+            mouse_pos = np.array([mouse.getPos()[0], mouse.getPos()[1]])
 
             # Apply Distortion
             # Es sieht anders aus als es ist ==> wir behalten die Information darüber, wo die Hand actually ist.
             if (not training and timer.getTime() >= trial_burst_time and timer.getTime() <= trial_burst_time + burst_dur):
                 offset += trial_burst_force
-            virtual_mouse_pos = [mouse_pos[0] + offset, mouse_pos[1]]
+            virtual_mouse_pos = np.array([mouse_pos[0] + offset, mouse_pos[1]])
 
             # Save movements with times
             forward_movement.append(mouse_pos)
