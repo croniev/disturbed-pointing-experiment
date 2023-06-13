@@ -81,13 +81,13 @@ def main(
 
     # biopLUX
     eda_device = None
-    # print("Loading BioPLUX device...")
-    # eda_device = MyBioplux("BTH00:07:80:89:7F:F0")
-    # eda_device.start(1000, 0x01, 16)
-    # t = threading.Thread(target=eda_device.loop)
-    # t.setDaemon(True)
-    # t.start()
-    # print("Ready!")
+    print("Loading BioPLUX device...")
+    eda_device = MyBioplux("BTH00:07:80:89:7F:F0")
+    eda_device.start(1000, 0x01, 16)
+    t = threading.Thread(target=eda_device.loop)
+    t.setDaemon(True)
+    t.start()
+    print("Ready!")
 
     # Open a PsychoPy window, show the image, collect a keypress, close.
     win = visual.Window(
@@ -105,7 +105,7 @@ def main(
     os.makedirs("./data/" + user + "/main", exist_ok=True)
     os.makedirs("./data/" + user + "/train1", exist_ok=True)
     os.makedirs("./data/" + user + "/train2", exist_ok=True)
-    os.makedirs("./data/" + user + "/beginn", exist_ok=True)
+    os.makedirs("./data/" + user + "/begin", exist_ok=True)
     os.makedirs("./data/" + user + "/end", exist_ok=True)
     if os.path.isfile(str("data/" + user + "/main/trials.csv")):
         os.remove(str("data/" + user + "/main/trials.csv"))
@@ -113,8 +113,8 @@ def main(
         os.remove(str("data/" + user + "/train1/trials.csv"))
     if os.path.isfile(str("data/" + user + "/train2/trials.csv")):
         os.remove(str("data/" + user + "/train2/trials.csv"))
-    if os.path.isfile(str("data/" + user + "/beginn/trials.csv")):
-        os.remove(str("data/" + user + "/beginn/trials.csv"))
+    if os.path.isfile(str("data/" + user + "/begin/trials.csv")):
+        os.remove(str("data/" + user + "/begin/trials.csv"))
     if os.path.isfile(str("data/" + user + "/end/trials.csv")):
         os.remove(str("data/" + user + "/end/trials.csv"))
 
@@ -147,7 +147,7 @@ def main(
             if (training):
                 text_stim_block_complete_saving.text = "You have completed a training block.\n\nSaving data... please wait"
             else:
-                text_stim_block_complete_saving.text = f"You have completed block {block_nr + 1} of {str(int(n_trials - 1))}.\nRelax for a bit.\n\nSaving data... please wait"
+                text_stim_block_complete_saving.text = f"You have completed block {block_nr + 1} of {str(int(n_trials))}.\nRelax for a bit.\n\nSaving data... please wait"
                 block_nr += 1
             text_stim_block_complete_saving.draw()
             win.flip()
@@ -198,7 +198,7 @@ def main(
             text_stim_prop_reporting.draw()
             win.flip()
             event.waitKeys(keyList=["space"])
-            proprioceptive_reporting(n_proprioceptive_reporting, "data/" + user + "/beginn/", False, win, mouse, eda_device)
+            proprioceptive_reporting(n_proprioceptive_reporting, "data/" + user + "/begin/", False, win, mouse, eda_device)
             text_stim_begin.draw()
             win.flip()
             event.waitKeys(keyList=["space"])
@@ -513,7 +513,7 @@ def start_experiment(win, mouse):
         win,
         units="norm",
         text=(
-            "Your task is to move the cursor up in a straight line. Please dont lift your hand during the movement.\n\nFirst you will complete some training blocks, and then the main task will beginn.\n\nWhen the cursor is hidden, please move it back to the starting point. It will reappear and you can move it in a straight line to the top, cutting through the small cross.\n\nPress <space> to continue."
+            "Your task is to move the cursor up in a straight line. Please don't lift your hand during the movement.\n\nFirst you will complete some training blocks, and then the main task will begin.\n\nWhen the cursor is hidden, please move it back to the starting point. It will reappear and you can move it in a straight line to the top, cutting through the small cross.\n\nPress <space> to continue."
         ),
         wrapWidth=0.9,
         height=0.05,
