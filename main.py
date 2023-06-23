@@ -473,7 +473,7 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eda_device)
                     hit = True
                 eda_device.collect(None, None)  # bioPLUX
                 break
-        single_data.update({"pr_i": [i], "pr_mouse_pos_x": [mouse.getPos()[0]], "pr_mouse_pos_y": [mouse.getPos()[1]], "pr_target_x": [target[0]], "pr_target_y": [target[1]], "pr_distance": [math.dist(mouse.getPos(), target)], "pr_hit": [hit], "pr_time": [timer.getTime()]})
+        single_data.update({"pr_i": [i], "pr_mouse_pos_x": [mouse.getPos()[0]], "pr_mouse_pos_y": [mouse.getPos()[1]], "pr_target": [target], "pr_target_x": [target[0]], "pr_target_y": [target[1]], "pr_distance": [math.dist(mouse.getPos(), target)], "pr_hit": [hit], "pr_time": [timer.getTime()]})
 
         if show_feedback:
             if hit:
