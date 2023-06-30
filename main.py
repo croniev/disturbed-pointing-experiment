@@ -1,5 +1,5 @@
 import os
-import threading
+# import threading
 import numpy as np
 import pandas as pd
 import click
@@ -11,32 +11,32 @@ from random import shuffle
 import math
 import bisect
 import json
-import plux
+# import plux
 
 
-class MyBioplux(plux.SignalsDev):
-    def __init__(self, address):
-        plux.MemoryDev.__init__(address)
-        self.bucket = None
-        self.timer = None
-
-    def onRawFrame(self, nSeq, data):
-        global eda_data
-        if self.bucket:
-            eda_data[self.bucket][0].append(float(*data))
-            eda_data[str(self.bucket + "_timestamps")][0].append(round(self.timer.getTime(), 6))
-        return False
-
-    def collect(self, bucket, timer):
-        global eda_data
-        self.bucket = bucket
-        if bucket:
-            eda_data[bucket] = [[]]
-            eda_data[str(bucket + "_timestamps")] = [[]]
-        self.timer = timer
-
-
-eda_data = {"eda_back": [[]], "eda_start": [[]], "eda_forward": [[]], "eda_pr": [[]], "eda_back_timestamps": [[]], "eda_start_timestamps": [[]], "eda_forward_timestamps": [[]], "eda_pr_timestamps": [[]]}
+# class MyBioplux(plux.SignalsDev):
+#     def __init__(self, address):
+#         plux.MemoryDev.__init__(address)
+#         self.bucket = None
+#         self.timer = None
+#
+#     def onRawFrame(self, nSeq, data):
+#         global eda_data
+#         if self.bucket:
+#             eda_data[self.bucket][0].append(float(*data))
+#             eda_data[str(self.bucket + "_timestamps")][0].append(round(self.timer.getTime(), 6))
+#         return False
+#
+#     def collect(self, bucket, timer):
+#         global eda_data
+#         self.bucket = bucket
+#         if bucket:
+#             eda_data[bucket] = [[]]
+#             eda_data[str(bucket + "_timestamps")] = [[]]
+#         self.timer = timer
+#
+#
+# eda_data = {"eda_back": [[]], "eda_start": [[]], "eda_forward": [[]], "eda_pr": [[]], "eda_back_timestamps": [[]], "eda_start_timestamps": [[]], "eda_forward_timestamps": [[]], "eda_pr_timestamps": [[]]}
 
 # to avoid bug on windows (https://www.psychopy.org/troubleshooting.html#errors-with-getting-setting-the-gamma-ramp)
 prefs.general["gammaErrorPolicy"] = "warn"
@@ -79,15 +79,15 @@ def main(
     lefthanded: bool = False,
 ) -> None:
 
-    # biopLUX
-    eda_device = None
-    print("Loading BioPLUX device...")
-    eda_device = MyBioplux("BTH00:07:80:89:7F:F0")
-    eda_device.start(1000, 0x01, 16)
-    t = threading.Thread(target=eda_device.loop)
-    t.setDaemon(True)
-    t.start()
-    print("Ready!")
+    # # biopLUX
+    # eda_device = None
+    # print("Loading BioPLUX device...")
+    # eda_device = MyBioplux("BTH00:07:80:89:7F:F0")
+    # eda_device.start(1000, 0x01, 16)
+    # t = threading.Thread(target=eda_device.loop)
+    # t.setDaemon(True)
+    # t.start()
+    # print("Ready!")
 
     # Open a PsychoPy window, show the image, collect a keypress, close.
     win = visual.Window(
@@ -167,24 +167,24 @@ def main(
             text_stim_block_complete_saving.draw()
             win.flip()
 
-            if training: 
-                pressed_key = event.waitKeys(keyList=["space", "a", "left", "q"])[0]
+            if training:
+                pressed_key = event.waitKeys(keyList=["up", "space", "a", "left"])[0]
             else:
-                pressed_key = event.waitKeys(keyList=["space", "q"])[0]
-            if pressed_key == "q":
-                win.setMouseVisible(True)
-                win.close()
-                # bioPLUX
-                eda_device.interrupt()
-                eda_device.stop()
-                eda_device.close()
-                core.quit()
-            elif (pressed_key == "a" or pressed_key == "left") and not phase2:
+                pressed_key = event.waitKeys(keyList=["up", "space"])[0]
+            # if pressed_key == "q":
+            #     win.setMouseVisible(True)
+            #     win.close()
+            #     # bioPLUX
+            #     eda_device.interrupt()
+            #     eda_device.stop()
+            #     eda_device.close()
+            #     core.quit()
+            if (pressed_key == "a" or pressed_key == "left") and not phase2:
                 phase2 = True
                 text_stim_entering_phase2.draw()
                 win.flip()
                 block_nr = -1
-                event.waitKeys(keyList=["space"])
+                event.waitKeys(keyList=["up", "space"])
             elif ((pressed_key == "a" or pressed_key == "left") and phase2):
                 training = False
                 trial_nr = 0
@@ -197,21 +197,21 @@ def main(
         if (trial_nr == 0 and not training) and not no_propriocept:
             text_stim_prop_reporting.draw()
             win.flip()
-            event.waitKeys(keyList=["space"])
-            proprioceptive_reporting(n_proprioceptive_reporting, "data/" + user + "/begin/", False, win, mouse, eda_device)
+            event.waitKeys(keyList=["up", "space"])
+            proprioceptive_reporting(n_proprioceptive_reporting, "data/" + user + "/begin/", False, win, mouse)
             text_stim_begin.draw()
             win.flip()
-            event.waitKeys(keyList=["space"])
+            event.waitKeys(keyList=["up", "space"])
 
         trial_data = {"trial_nr": [trial_nr], "training": [training], "block_nr": [block_nr]}
-        if len(event.getKeys(keyList=['q'])) > 0:
-            win.setMouseVisible(True)
-            win.close()
-            # bioPLUX
-            eda_device.interrupt()
-            eda_device.stop()
-            eda_device.close()
-            core.quit()
+        # if len(event.getKeys(keyList=['q'])) > 0:
+        #     win.setMouseVisible(True)
+        #     win.close()
+        #     # bioPLUX
+        #     eda_device.interrupt()
+        #     eda_device.stop()
+        #     eda_device.close()
+        #     core.quit()
 
         try:
             trial_burst_time, trial_burst_force = trial_list[trial_nr - 1]  # burst_combis[block_nr]
@@ -228,7 +228,7 @@ def main(
 
         # EEG measurement
         timer = core.Clock()
-        eda_device.collect("eda_back", timer) # bioPLUX
+        # eda_device.collect("eda_back", timer) # bioPLUX
 
         # Move mouse back
         back_down = False
@@ -237,14 +237,14 @@ def main(
         back_timestamps = []
         starting_timestamps = []
         while True:  # Move back down and then to cross
-            if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
-                win.setMouseVisible(True)
-                win.close()
-                # bioPLUX
-                eda_device.interrupt()
-                eda_device.stop()
-                eda_device.close()
-                core.quit()
+            # if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
+            #     win.setMouseVisible(True)
+            #     win.close()
+            #     # bioPLUX
+            #     eda_device.interrupt()
+            #     eda_device.stop()
+            #     eda_device.close()
+            #     core.quit()
 
             text_stim_score.draw()
 
@@ -261,7 +261,7 @@ def main(
                 if math.dist(mouse_pos, beginning_point) < touch_radius:
                     back_down = True
                     timer = core.Clock()
-                    eda_device.collect("eda_start", timer)  # bioPLUX
+                    # eda_device.collect("eda_start", timer)  # bioPLUX
             else:  # PHASE 2: Move upwards
                 op_line_x.draw()
                 op_line_y.draw()
@@ -270,7 +270,7 @@ def main(
                 starting_timestamps.append(round(timer.getTime(), 6))
                 if (math.dist(mouse_pos, orientation_point) < 25 and training) or (math.dist(mouse_pos, orientation_point) < 50 and not training):
                     timer = core.Clock()
-                    eda_device.collect("eda_forward", timer)  # bioPLUX
+                    # eda_device.collect("eda_forward", timer)  # bioPLUX
                     break
                 elif (mouse_pos[1] > orientation_point[1]):
                     text_stim_score.text = "You missed the cross!"
@@ -285,14 +285,14 @@ def main(
         forward_timestamps = []
         err = 0
         while True:  # Perform pointing task
-            if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
-                win.setMouseVisible(True)
-                win.close()
-                # bioPLUX
-                eda_device.interrupt()
-                eda_device.stop()
-                eda_device.close()
-                core.quit()
+            # if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
+            #     win.setMouseVisible(True)
+            #     win.close()
+            #     # bioPLUX
+            #     eda_device.interrupt()
+            #     eda_device.stop()
+            #     eda_device.close()
+            #     core.quit()
             mouse_pos = np.array([mouse.getPos()[0], mouse.getPos()[1]])
 
             # Apply Distortion
@@ -318,7 +318,7 @@ def main(
             err += np.absolute(0 - virtual_mouse_pos[0])
             # Breakout condition
             if timer.getTime() >= time_limit:
-                eda_device.collect(None, None)  # bioPLUX
+                # eda_device.collect(None, None)  # bioPLUX
                 break
             core.wait(refresh_rate)
 
@@ -329,7 +329,7 @@ def main(
 
         # PHASE 3: Proprioception reporting guess
         if (not (no_propriocept) and phase2):
-            pr_data, pr_movement, pr_timestamps = proprioceptive_reporting(1, "", training, win, mouse, eda_device)
+            pr_data, pr_movement, pr_timestamps = proprioceptive_reporting(1, "", training, win, mouse)
             trial_data.update(pr_data)
 
         # PHASE 4: Ask question
@@ -343,22 +343,22 @@ def main(
                 subj_answer_scale(win, subj_answer)
                 win.flip()
                 timer = core.Clock()
-                pressed_key = event.waitKeys(keyList=["space", "q", "a", "d", "left", "right"], timeStamped=timer)
-                if pressed_key[0][0] == "q":  # DEBUG
-                    win.setMouseVisible(True)
-                    win.close()
-                    # bioPLUX
-                    eda_device.interrupt()
-                    eda_device.stop()
-                    eda_device.close()
-                    core.quit()
-                elif pressed_key[0][0] == "a" or pressed_key[0][0] == "left":
+                pressed_key = event.waitKeys(keyList=["up", "space", "a", "d", "left", "right"], timeStamped=timer)
+                # if pressed_key[0][0] == "q":  # DEBUG
+                #     win.setMouseVisible(True)
+                #     win.close()
+                #     # bioPLUX
+                #     eda_device.interrupt()
+                #     eda_device.stop()
+                #     eda_device.close()
+                #     core.quit()
+                if pressed_key[0][0] == "a" or pressed_key[0][0] == "left":
                     if subj_answer > 0:
                         subj_answer -= 1
                 elif pressed_key[0][0] == "d" or pressed_key[0][0] == "right":
                     if subj_answer < 4:
                         subj_answer += 1
-                elif pressed_key[0][0] == "space":
+                elif pressed_key[0][0] == "space" or pressed_key[0][0] == "up":
                     break
             trial_data.update({"question_asked": [True], "subj_answer": [subj_answer], "answer_time": [pressed_key[0][1]]})
         else:
@@ -385,20 +385,20 @@ def main(
         np.save(filename + "_bm.npy", np.array([back_movement, back_timestamps], dtype=object))
         np.save(filename + "_sm.npy", np.array([starting_movement, starting_timestamps], dtype=object))
         np.save(filename + "_fm.npy", np.array([forward_movement, forward_timestamps, virtual_movement], dtype=object))
-        np.save(filename + "_be.npy", np.array([eda_data["eda_back"], eda_data["eda_back_timestamps"]], dtype=object))
-        np.save(filename + "_se.npy", np.array([eda_data["eda_start"], eda_data["eda_start_timestamps"]], dtype=object))
-        np.save(filename + "_fe.npy", np.array([eda_data["eda_forward"], eda_data["eda_forward_timestamps"]], dtype=object))
-        if not(training and not phase2) and not no_propriocept:
+        # np.save(filename + "_be.npy", np.array([eda_data["eda_back"], eda_data["eda_back_timestamps"]], dtype=object))
+        # np.save(filename + "_se.npy", np.array([eda_data["eda_start"], eda_data["eda_start_timestamps"]], dtype=object))
+        # np.save(filename + "_fe.npy", np.array([eda_data["eda_forward"], eda_data["eda_forward_timestamps"]], dtype=object))
+        if not (training and not phase2) and not no_propriocept:
             np.save(filename + "_pm.npy", np.array([pr_movement, pr_timestamps], dtype=object))
-            np.save(filename + "_pe.npy", np.array([eda_data["eda_pr"], eda_data["eda_pr_timestamps"]], dtype=object))
+            # np.save(filename + "_pe.npy", np.array([eda_data["eda_pr"], eda_data["eda_pr_timestamps"]], dtype=object))
 
     # Again baseline at the end
     if not (no_propriocept):
         # Proprioceptive baseline at end
         text_stim_prop_reporting_2.draw()
         win.flip()
-        event.waitKeys(keyList=["space"])
-        proprioceptive_reporting(n_proprioceptive_reporting, "data/" + user + "/end/", False, win, mouse, eda_device)
+        event.waitKeys(keyList=["space", "up"])
+        proprioceptive_reporting(n_proprioceptive_reporting, "data/" + user + "/end/", False, win, mouse)
 
     # END SESSION
     text_stim_end.draw()
@@ -407,19 +407,21 @@ def main(
     win.setMouseVisible(True)
     win.close()
     # bioPLUX
-    eda_device.interrupt()
-    eda_device.stop()
-    eda_device.close()
+    # eda_device.interrupt()
+    # eda_device.stop()
+    # eda_device.close()
     core.quit()
 
 
-def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eda_device):
+def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
     # trials_data = pd.DataFrame(columns=["pr_mouse_beginn", "pr_mouse_pos", "pr_target", "pr_hit", "pr_movement"])
+    targets_list = [t for t in proprio_targets for i in range(int(n / len(proprio_targets)))]
+    shuffle(targets_list)
     for i in range(n):
         single_data = {}
         if (filename != ""):
             # Move mouse to certain point
-            beginning_point = [0, np.random.normal(loc=top_pos[1] + 50, scale=30)]
+            beginning_point = [np.random.normal(loc=0, scale=30), np.random.normal(loc=top_pos[1] + 50, scale=30)]
             bp_line_x = visual.Line(win,
                                     start=(beginning_point[0] - 10, beginning_point[1]),
                                     end=(beginning_point[0] + 10, beginning_point[1]),
@@ -434,14 +436,14 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eda_device)
                                     contrast=-1)
             ready = False
             while (not ready):
-                if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
-                    win.setMouseVisible(True)
-                    win.close()
-                    # bioPLUX
-                    eda_device.interrupt()
-                    eda_device.stop()
-                    eda_device.close()
-                    core.quit()
+                # if len(event.getKeys(keyList=['q'])) > 0:  # DEBUG
+                #     win.setMouseVisible(True)
+                #     win.close()
+                #     # bioPLUX
+                #     eda_device.interrupt()
+                #     eda_device.stop()
+                #     eda_device.close()
+                #     core.quit()
 
                 bp_line_x.draw()
                 bp_line_y.draw()
@@ -455,7 +457,7 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eda_device)
         win.flip()
         core.wait(0.2)
 
-        target = proprio_targets[np.random.randint(len(proprio_targets))]
+        target = targets_list[i]
         target_shape = new_circle(win, target, r=touch_radius)
         target_shape.draw()
         win.flip()
@@ -464,14 +466,14 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eda_device)
         pr_movement = []
         pr_timestamps = []
         timer = core.Clock()
-        eda_device.collect("eda_pr", timer)  # bioPLUX
+        # eda_device.collect("eda_pr", timer)  # bioPLUX
         while True:
             pr_movement.append([mouse.getPos()[0], mouse.getPos()[1]])
             pr_timestamps.append(round(timer.getTime(), 6))
             if mouse.getPressed()[1] != 0:
                 if math.dist(mouse.getPos(), target) < touch_radius + 10:
                     hit = True
-                eda_device.collect(None, None)  # bioPLUX
+                # eda_device.collect(None, None)  # bioPLUX
                 break
         single_data.update({"pr_i": [i], "pr_mouse_pos_x": [mouse.getPos()[0]], "pr_mouse_pos_y": [mouse.getPos()[1]], "pr_target": [target], "pr_target_x": [target[0]], "pr_target_y": [target[1]], "pr_distance": [math.dist(mouse.getPos(), target)], "pr_hit": [hit], "pr_time": [timer.getTime()]})
 
@@ -495,8 +497,8 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse, eda_device)
 
         # d.t. save every tasks movement and eda data
         np.save(filename + "b0_t" + str(i) + "_pm.npy", np.array([pr_movement, pr_timestamps], dtype=object))
-        global eda_data
-        np.save(filename + "b0_t" + str(i) + "_pe.npy", np.array([eda_data["eda_pr"], eda_data["eda_pr_timestamps"]], dtype=object))
+        # global eda_data
+        # np.save(filename + "b0_t" + str(i) + "_pe.npy", np.array([eda_data["eda_pr"], eda_data["eda_pr_timestamps"]], dtype=object))
 
     visual.TextStim(win,
                     units="norm",
@@ -520,11 +522,11 @@ def start_experiment(win, mouse):
     )
     instruction_text.draw()
     win.flip()
-    pressed_key = event.waitKeys(keyList=["space", "q"])
-    if pressed_key[0][0] == "q":  # DEBUG
-        win.setMouseVisible(True)
-        win.close()
-        core.quit()
+    event.waitKeys(keyList=["space"])
+    # if pressed_key[0][0] == "q":  # DEBUG
+    #     win.setMouseVisible(True)
+    #     win.close()
+    #     core.quit()
     mouse.clickReset()
     win.flip()
 
