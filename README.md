@@ -1,16 +1,14 @@
 # disturbed-pointing-experiment
-Idea for my Bachelors Thesis. 
-Please do not clone if you are planning on participating in the experiment!!
+Conducted at the Sensorimotor Control and Learning lab at TU Darmstadt (Prof. Loes van Dam) in July 2023.
 
 ## Usage
-- Conda Environment for Handeln course should work. If not install from conda-env.yml file.
+- Conda environment for experiment: experiment.yml
 - before starting run `python create_monitor_file.py --width_px <px> --height_px <px>` with the specs of the monitor you are using.  
 - For the questionnaires run `python questionnaire.py --form <1 or 2>`
-- make sure the bioPLUX device is connected via bluetooth and the mac address is written into the params.json file.
-- run main.py
-	- debug: disable fullscreen
-    - no_propriocept (-n): disable baseline and trial proprioceptive reporting
-    - no_training (-t): don't do any training blocks
-    - user: user ID
-    - lefthanded: save data as lefthanded
-- for the analysis install analysis-env.yml
+- experiment: main.py
+	- debug mode (--debug): disable fullscreen
+    - no-propriocept (-n): disable baseline and trial proprioceptive reporting
+    - no-training (-t): don't do any training blocks
+    - user (-u): user ID
+    - lefthanded (-l): save data as lefthanded
+- Conda environment for the analysis: analysis.yml

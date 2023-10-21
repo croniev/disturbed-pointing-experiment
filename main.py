@@ -1,5 +1,4 @@
 import os
-# import threading
 import numpy as np
 import pandas as pd
 import click
@@ -72,7 +71,6 @@ top_pos = norm2pix(top_pos, mon)
 def main(
     screen: int = 0,
     debug: bool = False,
-    distortion: str = "random",
     no_propriocept: bool = False,
     no_training: bool = False,
     user: str = "0",
@@ -120,7 +118,7 @@ def main(
 
     # d.t.
     # Save flags in PARAMS dict
-    PARAMS.update({"debug": debug, "distortion": distortion, "no_propriocept": no_propriocept, "lefthanded": lefthanded})
+    PARAMS.update({"debug": debug, "no_propriocept": no_propriocept, "lefthanded": lefthanded})
     pd.DataFrame.from_dict(PARAMS).to_csv("data/" + user + "/params.csv")  # Save PARAMS
 
     # START EXPERIMENT
@@ -417,6 +415,8 @@ def proprioceptive_reporting(n, filename, show_feedback, win, mouse):
     # trials_data = pd.DataFrame(columns=["pr_mouse_beginn", "pr_mouse_pos", "pr_target", "pr_hit", "pr_movement"])
     targets_list = [t for t in proprio_targets for i in range(int(n / len(proprio_targets)))]
     shuffle(targets_list)
+    if n == 1:
+        targets_list = [proprio_targets[np.random.randint(len(proprio_targets))]]
     for i in range(n):
         single_data = {}
         if (filename != ""):
@@ -683,14 +683,6 @@ def stims(win):
     help="Pass to enable debug mode (disable fullscreen, increase logging level)",
 )
 @click.option(
-    "-d",
-    "--distortion",
-    default="random",
-    type=str,
-    show_default=True,
-    help="set distortion to one of [random,none,straight,rotate,repell,burst].",
-)
-@click.option(
     "-n",
     "--no-propriocept",
     default=False,
@@ -722,11 +714,10 @@ def stims(win):
     is_flag=True,
     help="Pass to save lefthanded flag in data",
 )
-def cli(screen: int, debug: bool, distortion: str, no_propriocept: bool, no_training: bool, user: str, lefthanded: bool):
+def cli(screen: int, debug: bool, no_propriocept: bool, no_training: bool, user: str, lefthanded: bool):
     main(
         screen=screen,
         debug=debug,
-        distortion=distortion,
         no_propriocept=no_propriocept,
         no_training=no_training,
         user=user,

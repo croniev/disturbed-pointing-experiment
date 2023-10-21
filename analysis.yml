@@ -1,0 +1,10 @@
+name: dpe_analysis
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - numpy
+  - pandas
+  - matplotlib
+  - seaborn
+  - jupyter

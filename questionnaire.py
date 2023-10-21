@@ -18,8 +18,6 @@ def main(
         fullscr=True)
 
     os.makedirs("./data/" + user, exist_ok=True)
-    # if os.path.isfile(str("data/" + user + "_" + str(form) + "_questionnaire.csv")):
-    #     os.remove(str("data/" + user + "_" + str(form) + "_questionnaire.csv"))
 
     # Create Form
     try:
